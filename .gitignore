@@ -14,5 +14,10 @@ Desktop.ini
 *.swp
 *.swo
 
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
 # OS generated files
 .DS_Store
