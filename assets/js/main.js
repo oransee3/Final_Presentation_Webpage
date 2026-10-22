@@ -1025,18 +1025,68 @@ function injectMobileResponsiveStyles() {
         min-height: 60vh !important;
       }
 
+      /* 모바일에서는 하단 퀵 독이 메인이므로 서브페이지 미니 GNB는 숨겨 겹침 방지 */
+      #fpGlobalMiniNav {
+        display: none !important;
+      }
+
       /* Part 4 모바일 최적화 */
+      .viewport {
+        padding: 16px 14px 84px !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+      }
       .qr-card-container {
-        padding: 24px 16px !important;
-        max-width: 94vw !important;
+        padding: 24px 16px 20px !important;
+        max-width: min(92vw, 380px) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: auto !important;
+        border-radius: 24px !important;
+      }
+      .badge {
+        font-size: 11.5px !important;
+        padding: 5px 14px !important;
+        margin-bottom: 16px !important;
+      }
+      .qr-link-wrap {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin: 0 auto !important;
       }
       .qr-frame {
-        width: 190px !important;
-        height: 190px !important;
+        width: min(200px, 58vw) !important;
+        height: min(200px, 58vw) !important;
+        padding: 10px !important;
+        border-radius: 18px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+      }
+      .qr-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        object-fit: contain !important;
+        display: block !important;
+        border-radius: 10px !important;
+      }
+      .title-group {
+        margin-top: 18px !important;
       }
       .main-text {
-        font-size: 15px !important;
-        line-height: 1.5 !important;
+        font-size: 14.5px !important;
+        line-height: 1.55 !important;
+      }
+      .sub-caption {
+        font-size: 12px !important;
+        margin-top: 10px !important;
       }
     }
   `;
