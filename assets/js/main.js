@@ -507,12 +507,551 @@ function handleSubpageDeepLink(partNum) {
   }
 }
 
+/* ==========================================================================
+   3. 모바일 터치 전용 퀵 컨트롤러 독 & 가상 단축키 키패드 (Virtual Keypad System)
+   ========================================================================== */
+function initMobileVirtualKeypad() {
+  if (document.getElementById('fpMobileQuickDock')) return;
+
+  const currentNum = detectCurrentPartNumber(); // 1~4 or null (hub)
+  const isHub = currentNum === null;
+
+  // 1. 서브페이지인 경우 가상 키패드 및 퀵 독 스타일 동적 주입
+  if (!isHub) {
+    injectKeypadStyles();
+  }
+
+  // 2. 하단 모바일 퀵 독 (Bottom Quick Nav Dock) 생성
+  const dock = document.createElement('div');
+  dock.id = 'fpMobileQuickDock';
+  dock.className = 'fp-mobile-dock';
+  dock.setAttribute('role', 'toolbar');
+  dock.setAttribute('aria-label', '모바일 프레젠테이션 빠른 컨트롤러');
+
+  const homeHref = isHub ? '#overviewSection' : '../index.html';
+  const part1Href = isHub ? './part1/Part1.html' : '../part1/Part1.html';
+  const part2Href = isHub ? './part2/Part2.html' : '../part2/Part2.html';
+  const part3Href = isHub ? './part3/Part3.html' : '../part3/Part3.html';
+  const part4Href = isHub ? './part4/Part4.HTML' : '../part4/Part4.HTML';
+
+  dock.innerHTML = `
+    <a href="${homeHref}" class="fp-dock-btn ${isHub ? 'active' : ''}" title="메인 허브 (Alt+H)">
+      <span>🏠</span>
+    </a>
+    <a href="${part1Href}" class="fp-dock-btn ${currentNum === 1 ? 'active' : ''}" data-key="1" title="Part 01 바로가기 (단축키 1)">
+      <span>1</span>
+    </a>
+    <a href="${part2Href}" class="fp-dock-btn ${currentNum === 2 ? 'active' : ''}" data-key="2" title="Part 02 바로가기 (단축키 2)">
+      <span>2</span>
+    </a>
+    <a href="${part3Href}" class="fp-dock-btn ${currentNum === 3 ? 'active' : ''}" data-key="3" title="Part 03 바로가기 (단축키 3)">
+      <span>3</span>
+    </a>
+    <a href="${part4Href}" class="fp-dock-btn ${currentNum === 4 ? 'active' : ''}" data-key="4" title="Part 04 바로가기 (단축키 4)">
+      <span>4</span>
+    </a>
+    <div class="fp-dock-divider"></div>
+    <button type="button" class="fp-dock-btn accent-key" id="fpDockFsBtn" title="전체화면 모드 (단축키 F)">
+      <span>⛶ F</span>
+    </button>
+    <button type="button" class="fp-dock-btn accent-key" id="fpDockVpadToggle" title="가상 단축키 키패드 열기">
+      <span>⌨️</span>
+    </button>
+  `;
+
+  document.body.appendChild(dock);
+
+  // F 버튼 클릭 이벤트
+  const fsBtn = document.getElementById('fpDockFsBtn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      triggerVirtualKey('f', 'KeyF');
+    });
+  }
+
+  // 3. 확장 가상 키패드 팝업 모달 생성
+  const vpadBackdrop = document.createElement('div');
+  vpadBackdrop.id = 'fpVpadBackdrop';
+  vpadBackdrop.className = 'fp-vpad-backdrop';
+  vpadBackdrop.innerHTML = `
+    <div class="fp-vpad-drawer" role="dialog" aria-modal="true" aria-label="프레젠테이션 가상 키패드">
+      <div class="fp-vpad-header">
+        <div class="fp-vpad-title">
+          <span>📱</span>
+          <span>프레젠테이션 가상 키패드 (Virtual Shortcuts)</span>
+        </div>
+        <button type="button" class="fp-vpad-close" id="fpVpadCloseBtn" title="닫기">✕</button>
+      </div>
+
+      <div class="fp-vpad-group-label">파트 즉시 이동 키 (Number Keys 1 ~ 4)</div>
+      <div class="fp-vpad-grid">
+        <button type="button" class="fp-vpad-key" data-key="1" data-code="Digit1">
+          <span class="fp-vpad-key-char">1</span>
+          <span class="fp-vpad-key-desc">Part 01</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="2" data-code="Digit2">
+          <span class="fp-vpad-key-char">2</span>
+          <span class="fp-vpad-key-desc">Part 02</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="3" data-code="Digit3">
+          <span class="fp-vpad-key-char">3</span>
+          <span class="fp-vpad-key-desc">Part 03</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="4" data-code="Digit4">
+          <span class="fp-vpad-key-char">4</span>
+          <span class="fp-vpad-key-desc">Part 04</span>
+        </button>
+      </div>
+
+      <div class="fp-vpad-group-label">발표 조작 및 미디어 제어 키 (Control Keys)</div>
+      <div class="fp-vpad-grid">
+        <button type="button" class="fp-vpad-key" data-key="f" data-code="KeyF">
+          <span class="fp-vpad-key-char">F</span>
+          <span class="fp-vpad-key-desc">전체화면</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key=" " data-code="Space">
+          <span class="fp-vpad-key-char">Space</span>
+          <span class="fp-vpad-key-desc">재생/정지</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="m" data-code="KeyM">
+          <span class="fp-vpad-key-char">M</span>
+          <span class="fp-vpad-key-desc">음소거</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="g" data-code="KeyG">
+          <span class="fp-vpad-key-char">G</span>
+          <span class="fp-vpad-key-desc">GNB가이드</span>
+        </button>
+      </div>
+
+      <div class="fp-vpad-group-label">탐색 키 (Navigation Keys)</div>
+      <div class="fp-vpad-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <button type="button" class="fp-vpad-key" data-key="ArrowLeft" data-code="ArrowLeft">
+          <span class="fp-vpad-key-char">◀ 이전</span>
+          <span class="fp-vpad-key-desc">미션/탭</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="ArrowRight" data-code="ArrowRight">
+          <span class="fp-vpad-key-char">다음 ▶</span>
+          <span class="fp-vpad-key-desc">미션/탭</span>
+        </button>
+        <button type="button" class="fp-vpad-key" data-key="Home" data-code="Home">
+          <span class="fp-vpad-key-char">🏠 홈</span>
+          <span class="fp-vpad-key-desc">대시보드</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(vpadBackdrop);
+
+  // 가상 키패드 토글 이벤트
+  const toggleBtn = document.getElementById('fpDockVpadToggle');
+  const closeBtn = document.getElementById('fpVpadCloseBtn');
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      vpadBackdrop.classList.toggle('open');
+    });
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      vpadBackdrop.classList.remove('open');
+    });
+  }
+  vpadBackdrop.addEventListener('click', (e) => {
+    if (e.target === vpadBackdrop) vpadBackdrop.classList.remove('open');
+  });
+
+  // 키패드 버튼 클릭 바인딩
+  vpadBackdrop.querySelectorAll('.fp-vpad-key').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-key');
+      const code = btn.getAttribute('data-code');
+      triggerVirtualKey(key, code);
+      if (['1', '2', '3', '4', 'Home'].includes(key)) {
+        vpadBackdrop.classList.remove('open');
+      }
+    });
+  });
+}
+
+function triggerVirtualKey(key, code) {
+  // 1. 네이티브 KeyboardEvent 디스패치 (Part1, Part2, Hub 등 기존 리스너 트리거)
+  const evt = new KeyboardEvent('keydown', {
+    key: key,
+    code: code || `Key${key.toUpperCase()}`,
+    bubbles: true,
+    cancelable: true
+  });
+  window.dispatchEvent(evt);
+  document.dispatchEvent(evt);
+
+  // 2. 키 종류별 직관적인 동작 보장
+  if (['1', '2', '3', '4'].includes(key)) {
+    const idx = parseInt(key, 10) - 1;
+    const targetPart = PRESENTATION_PARTS[idx];
+    if (targetPart) {
+      const isHub = detectCurrentPartNumber() === null;
+      const targetUrl = isHub ? targetPart.hubPath : targetPart.subPath;
+      showToastFeedback(`Key [${key}] : ${targetPart.code} 이동 중...`);
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 150);
+    }
+  } else if (key.toLowerCase() === 'f') {
+    toggleDocumentFullscreen();
+    showToastFeedback('전체화면 모드 전환');
+  } else if (key.toLowerCase() === 'g') {
+    if (typeof toggleGnbModal === 'function') toggleGnbModal();
+    else if (typeof openGnbModal === 'function') openGnbModal();
+  } else if (key === 'Home') {
+    const isHub = detectCurrentPartNumber() === null;
+    if (!isHub) window.location.href = '../index.html';
+  } else if (key === ' ') {
+    // Part 2 비디오 제어
+    const video = document.getElementById('intro-video');
+    if (video) {
+      video.paused ? video.play() : video.pause();
+      showToastFeedback(video.paused ? '⏸ 영상 일시정지' : '▶ 영상 재생');
+    }
+  } else if (key.toLowerCase() === 'm') {
+    const video = document.getElementById('intro-video');
+    if (video) {
+      video.muted = !video.muted;
+      showToastFeedback(video.muted ? '🔇 음소거' : '🔊 음소거 해제');
+    }
+  } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    // Part 1 미션 이전/다음 제어
+    if (typeof window.selectMission === 'function' && typeof window.currentLocalIndex === 'number') {
+      const list = window.filteredList || [];
+      const delta = key === 'ArrowLeft' ? -1 : 1;
+      const nextIdx = window.currentLocalIndex + delta;
+      if (nextIdx >= 0 && nextIdx < list.length) {
+        window.selectMission(nextIdx);
+        showToastFeedback(`미션 ${nextIdx + 1}/${list.length}`);
+      }
+    }
+  }
+}
+
+function showToastFeedback(msg) {
+  let toast = document.getElementById('shortcutToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'shortcutToast';
+    toast.className = 'shortcut-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 1600);
+}
+
+function injectKeypadStyles() {
+  if (document.getElementById('fpKeypadInjectedStyles')) return;
+  const style = document.createElement('style');
+  style.id = 'fpKeypadInjectedStyles';
+  style.textContent = `
+    .shortcut-toast {
+      position: fixed;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(13, 22, 42, 0.94);
+      border: 1px solid #22d3ee;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 211, 238, 0.4);
+      color: #f8fafc;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 10002;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      font-family: 'Pretendard', -apple-system, sans-serif;
+    }
+    .shortcut-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .fp-mobile-dock {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(8, 14, 28, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(34, 211, 238, 0.45);
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 211, 238, 0.25);
+      user-select: none;
+      max-width: calc(100vw - 20px);
+      box-sizing: border-box;
+    }
+    .fp-dock-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      min-width: 36px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #e2e8f0;
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-decoration: none;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fp-dock-btn:active {
+      transform: scale(0.92);
+      background: rgba(34, 211, 238, 0.3);
+    }
+    .fp-dock-btn.active {
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(16, 185, 129, 0.9));
+      border-color: #22d3ee;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.45);
+    }
+    .fp-dock-btn.accent-key {
+      background: rgba(14, 165, 233, 0.25);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+    .fp-dock-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 2px;
+    }
+    .fp-vpad-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10001;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+    .fp-vpad-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .fp-vpad-drawer {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(13, 22, 42, 0.96);
+      border: 1px solid rgba(34, 211, 238, 0.4);
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85);
+      padding: 18px 20px 28px;
+      box-sizing: border-box;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fp-vpad-backdrop.open .fp-vpad-drawer {
+      transform: translateY(0);
+    }
+    .fp-vpad-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .fp-vpad-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .fp-vpad-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .fp-vpad-group-label {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+      margin: 10px 0 6px;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .fp-vpad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .fp-vpad-key {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 10px 4px;
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #f8fafc;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .fp-vpad-key:active {
+      transform: scale(0.94);
+      background: rgba(34, 211, 238, 0.25);
+      border-color: #22d3ee;
+    }
+    .fp-vpad-key-char {
+      font-family: Consolas, monospace;
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+    .fp-vpad-key-desc {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function injectMobileResponsiveStyles() {
+  if (document.getElementById('fpMobileGlobalResponsiveStyles')) return;
+  const style = document.createElement('style');
+  style.id = 'fpMobileGlobalResponsiveStyles';
+  style.textContent = `
+    @media (max-width: 860px) {
+      /* Part 1 모바일 최적화 */
+      html, body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+      }
+      body {
+        padding: 12px 14px 80px !important;
+      }
+      .showcase-layout {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+      .list-card {
+        height: auto !important;
+        max-height: 220px !important;
+      }
+      .media-16-9-box {
+        max-height: none !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+      }
+      .step-tabs {
+        gap: 6px !important;
+      }
+      .step-tab-btn {
+        padding: 6px 14px !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* Part 2 모바일 최적화 */
+      .viewport {
+        padding: 14px 14px 80px !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+      .intro-header {
+        margin-bottom: 14px !important;
+      }
+      .intro-title {
+        font-size: 1.45rem !important;
+      }
+      .intro-desc {
+        font-size: 0.85rem !important;
+      }
+      .hud-dock {
+        flex-wrap: wrap !important;
+        padding: 8px 14px !important;
+        gap: 8px !important;
+      }
+
+      /* Part 3 모바일 최적화 */
+      .nav-tabs {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      .nav-tab-btn {
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+        justify-content: center !important;
+      }
+      .content-frame {
+        min-height: 60vh !important;
+      }
+
+      /* Part 4 모바일 최적화 */
+      .qr-card-container {
+        padding: 24px 16px !important;
+        max-width: 94vw !important;
+      }
+      .qr-frame {
+        width: 190px !important;
+        height: 190px !important;
+      }
+      .main-text {
+        font-size: 15px !important;
+        line-height: 1.5 !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   initHubPage();
   initSubpageGNB();
+  injectMobileResponsiveStyles();
+  initMobileVirtualKeypad();
 });
 window.addEventListener('load', () => {
   // Part1.html 등이 window.onload에서 초기화하므로 load 이후 딥링크 한 번 더 체크
   const currentNum = detectCurrentPartNumber();
   if (currentNum) handleSubpageDeepLink(currentNum);
 });
+
