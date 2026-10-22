@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Domus Music Studio - System Architecture & Structure</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #0d1017;
+    color: #e2e8f0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+  }
+
+  /* 캔버스 뷰포트 & 그리드 배경 */
+  .viewport {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background-color: #0f1219;
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 45px 45px;
+    cursor: grab;
+  }
+  .viewport.dragging { cursor: grabbing; }
+
+  .canvas {
+    width: 2100px;
+    height: 1650px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.40);
+    transform-origin: center center;
+    transition: transform 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .canvas.manual-mode { transition: transform 0.08s ease-out; }
+
+  /* SVG 네온 연결선 */
+  svg.connections {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .base-line { fill: none; stroke: rgba(148, 163, 184, 0.35); stroke-width: 2.5; }
+  .glow-line {
+    fill: none; stroke: #4ade80; stroke-width: 4.5; stroke-linecap: round;
+    filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px #4ade80);
+    opacity: 1;
+  }
+  .line-lit {
+    fill: none; stroke: rgba(74, 222, 128, 0.6); stroke-width: 2.5;
+    opacity: 1;
+  }
+
+  /* 아키텍처 노드 카드 스타일 */
+  .node {
+    position: absolute;
+    background: rgba(26, 31, 44, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 18px 22px;
+    z-index: 2;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+  .node.done {
+    border-color: rgba(74, 222, 128, 0.7);
+    box-shadow: 0 0 22px rgba(74, 222, 128, 0.22);
+  }
+
+  .node.root-node { background: linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95)); border-color: #60a5fa; }
+  .node.docs-node { background: linear-gradient(145deg, rgba(49, 46, 129, 0.9), rgba(30, 27, 75, 0.92)); border-color: #818cf8; }
+  .node.src-node { background: linear-gradient(145deg, rgba(6, 78, 59, 0.9), rgba(2, 44, 34, 0.92)); border-color: #34d399; }
+  .node.thumb-node { background: linear-gradient(145deg, rgba(113, 24, 73, 0.9), rgba(65, 13, 40, 0.92)); border-color: #f43f5e; }
+  .node.output-node { background: linear-gradient(145deg, rgba(120, 53, 15, 0.9), rgba(69, 26, 3, 0.92)); border-color: #fbbf24; }
+
+  .node-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .node-title-wrap { display: flex; align-items: center; gap: 12px; }
+  .icon-badge { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: bold; }
+  .node-title { font-size: 18px; font-weight: 800; color: #f8fafc; letter-spacing: -0.3px; }
+  .node-sub { font-size: 13px; color: #94a3b8; margin-top: 3px; }
+
+  .ui-field {
+    background: rgba(15, 18, 26, 0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: #cbd5e1;
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* 클릭 가능한 video_renderer.py 항목 스타일 */
+  .clickable-field {
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .clickable-field:hover {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: rgba(52, 211, 153, 0.5);
+  }
+
+  .port {
+    width: 10px; height: 10px; background: #94a3b8; border: 2px solid #0f1219; border-radius: 50%;
+    position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.3s;
+  }
+  .port.top { top: -5px; }
+  .port.bottom { bottom: -5px; }
+
+  .check-badge {
+    position: absolute; top: -12px; right: -12px; width: 32px; height: 32px;
+    background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: bold; font-size: 17px; box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+    transform: scale(1); z-index: 5;
+  }
+
+  /* video_renderer.html 모달 오버레이 스타일 */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(13, 16, 23, 0.92);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-iframe {
+    width: 90vw;
+    height: 90vh;
+    border-radius: 12px;
+    border: 2px solid rgba(74, 222, 128, 0.4);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+    background: #0f1219;
+  }
+</style>
+</head>
+<body>
+
+<!-- video_renderer.html 모달 팝업 레이어 (바깥쪽 배경 혹은 더블클릭 시 닫힘) -->
+<div class="modal-overlay" id="renderer-modal" ondblclick="closeRendererModal()">
+  <iframe class="modal-iframe" id="renderer-iframe" src="" title="VideoRenderer Architecture"></iframe>
+</div>
+
+<div class="viewport" id="viewport">
+  <div class="canvas" id="canvas">
+    <!-- SVG 연결선 -->
+    <svg class="connections" viewBox="0 0 2100 1650">
+      <path class="base-line" d="M 1050 150 L 260 280" />
+      <path class="line-lit" d="M 1050 150 L 260 280" />
+      <path class="glow-line" d="M 1050 150 L 260 280" />
+
+      <path class="base-line" d="M 1050 150 L 690 280" />
+      <path class="line-lit" d="M 1050 150 L 690 280" />
+      <path class="glow-line" d="M 1050 150 L 690 280" />
+
+      <path class="base-line" d="M 1050 150 L 1120 280" />
+      <path class="line-lit" d="M 1050 150 L 1120 280" />
+      <path class="glow-line" d="M 1050 150 L 1120 280" />
+
+      <path class="base-line" d="M 1050 150 L 1550 280" />
+      <path class="line-lit" d="M 1050 150 L 1550 280" />
+      <path class="glow-line" d="M 1050 150 L 1550 280" />
+    </svg>
+
+    <!-- 1. Root / Main -->
+    <div class="node root-node done" id="node-root" style="width: 460px; left: 820px; top: 20px;">
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(96,165,250,0.2); color:#60a5fa;">📂</div>
+          <div><div class="node-title">M3-1_AI Domus (Root)</div><div class="node-sub">실행 진입점 및 빌드 환경 관리</div></div>
+        </div>
+      </div>
+      <div class="ui-field"><span>main.py</span><span style="color:#4ade80;">실행 진입점</span></div>
+      <div class="ui-field"><span>build.py</span><span style="color:#38bdf8;">PyInstaller 원클릭 배포</span></div>
+      <div class="ui-field"><span>requirements.txt</span><span>종속 패키지 관리</span></div>
+      <div class="port bottom" style="left:50%;"></div>
+    </div>
+
+    <!-- 2. Docs -->
+    <div class="node docs-node done" style="width: 360px; left: 80px; top: 280px;">
+      <div class="port top"></div><div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(129,140,248,0.2); color:#818cf8;">📄</div>
+          <div><div class="node-title">docs/ (기획 문서)</div><div class="node-sub">요구사항 명세 및 제안서</div></div>
+        </div>
+      </div>
+      <div class="ui-field"><span>01_PROJECT_PROPOSAL.md</span></div>
+      <div class="ui-field"><span>02_REQUIREMENTS_SPEC.md</span></div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- 3. Src (핵심 파이프라인 - video_renderer.py 클릭 영역) -->
+    <div class="node src-node done" style="width: 400px; left: 490px; top: 280px;">
+      <div class="port top"></div><div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(52,211,153,0.2); color:#34d399;">⚡</div>
+          <div><div class="node-title">src/ (핵심 파이프라인)</div><div class="node-sub">AI 에이전트, 미디어 렌더러, GUI</div></div>
+        </div>
+      </div>
+      <div class="ui-field"><span>config.py</span><span style="color:#34d399;">설정 관리</span></div>
+      <div class="ui-field"><span>agents/gemini_agent.py</span><span style="color:#38bdf8;">Gemini 에이전트</span></div>
+      <div class="ui-field"><span>agents/apiframe_agent.py</span><span style="color:#38bdf8;">Suno / Nano API</span></div>
+      <div class="ui-field"><span>media/image_processor.py</span><span style="color:#fbbf24;">9분할 크롭 모듈</span></div>
+      <!-- 클릭하여 video_renderer.html을 띄울 수 있는 항목 -->
+      <div class="ui-field clickable-field" onclick="openRendererModal(event)" title="클릭하여 video_renderer.html 보기">
+        <span>media/video_renderer.py</span><span style="color:#fbbf24; font-weight:bold;">MP4 렌더링 엔진 🔍</span>
+      </div>
+      <div class="ui-field"><span>gui/app_window.py</span><span style="color:#f43f5e;">PyQt5 메인 UI</span></div>
+      <div class="ui-field"><span>gui/worker.py</span><span style="color:#f43f5e;">QThread 비동기 워커</span></div>
+      <div class="port bottom" style="left:50%;"></div>
+    </div>
+
+    <!-- 4. Thumbnail_Designer-Program -->
+    <div class="node thumb-node done" style="width: 420px; left: 920px; top: 280px;">
+      <div class="port top"></div><div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(244,63,94,0.2); color:#fb7185;">🎨</div>
+          <div><div class="node-title">Thumbnail_Designer-Program</div><div class="node-sub">썸네일 프로 서브 모듈 (PyQt6)</div></div>
+        </div>
+      </div>
+      <div class="ui-field"><span>build/ & dist/</span><span>빌드 패키징 디렉토리</span></div>
+      <div class="ui-field"><span>projects/ & uploads/</span><span>에셋 및 프로젝트 보관함</span></div>
+      <div class="ui-field"><span>app.py</span><span style="color:#f43f5e;">디자이너 실행 메인</span></div>
+      <div class="ui-field"><span>pyqt6_app.py</span><span style="color:#38bdf8;">PyQt6 UI 컴포넌트</span></div>
+      <div class="ui-field"><span>launcher.py</span><span style="color:#38bdf8;">런처 실행 스크립트</span></div>
+      <div class="port bottom" style="left:50%;"></div>
+    </div>
+
+    <!-- 5. Output -->
+    <div class="node output-node done" style="width: 360px; left: 1370px; top: 280px;">
+      <div class="port top"></div><div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(251,191,36,0.2); color:#fbbf24;">💾</div>
+          <div><div class="node-title">output/ (결과물 저장소)</div><div class="node-sub">최종 에셋 및 미디어</div></div>
+        </div>
+      </div>
+      <div class="ui-field"><span>MP3 음원 파일</span></div>
+      <div class="ui-field"><span>9분할 크롭 이미지</span></div>
+      <div class="ui-field"><span>최종 FHD MP4 동영상</span></div>
+      <div class="port bottom"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+
+  let isDragging = false, dragStartX = 0, dragStartY = 0;
+  let camX = 0, camY = 0, camScale = 0.40;
+  const MIN_SCALE = 0.20;
+  const MAX_SCALE = 2.50;
+
+  function applyTransform() {
+    canvas.style.transform = `translate(calc(-50% + ${camX}px), calc(-50% + ${camY}px)) scale(${camScale})`;
+  }
+
+  // video_renderer.html 모달 열기 함수
+  function openRendererModal(e) {
+    e.stopPropagation();
+    const modal = document.getElementById('renderer-modal');
+    const iframe = document.getElementById('renderer-iframe');
+    iframe.src = 'video_renderer.html';
+    modal.classList.add('active');
+
+    // iframe 내부의 더블 클릭 이벤트를 감지하기 위한 설정
+    iframe.onload = function() {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDoc.addEventListener('dblclick', () => {
+          closeRendererModal();
+        });
+      } catch (err) {
+        console.log("Cross-origin or load restriction:", err);
+      }
+    };
+  }
+
+  // 모달 닫기 함수
+  function closeRendererModal() {
+    const modal = document.getElementById('renderer-modal');
+    const iframe = document.getElementById('renderer-iframe');
+    modal.classList.remove('active');
+    iframe.src = ''; // 리소스 정리
+  }
+
+  viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = Math.exp(-e.deltaY * 0.0015);
+    camScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, camScale * zoomFactor));
+    applyTransform();
+  }, { passive: false });
+
+  viewport.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - camX;
+    dragStartY = e.clientY - camY;
+    viewport.classList.add('dragging');
+    canvas.classList.add('manual-mode');
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    camX = e.clientX - dragStartX;
+    camY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    viewport.classList.remove('dragging');
+  });
+</script>
+</body>
+</html>

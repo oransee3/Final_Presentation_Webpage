@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Music Video Workflow - Added GPU Render Info</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #0d1017;
+    color: #e2e8f0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+  }
+
+  /* 캔버스 뷰포트 & 다크 그리드 배경 */
+  .viewport {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background-color: #0f1219;
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 45px 45px;
+    perspective: 1200px;
+    cursor: grab;
+  }
+  .viewport.dragging { cursor: grabbing; }
+
+  .canvas {
+    width: 1400px;
+    height: 1920px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.50);
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .canvas.manual-mode { transition: transform 0.08s ease-out; }
+
+  /* SVG 연결선 기본 상태 */
+  svg.connections {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .base-line { fill: none; stroke: rgba(148, 163, 184, 0.08); stroke-width: 2.5; transition: stroke 0.3s; }
+  
+  .glow-line {
+    fill: none;
+    stroke: #4ade80;
+    stroke-width: 4;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px #4ade80);
+    opacity: 0;
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  .line-lit {
+    fill: none;
+    stroke: rgba(74, 222, 128, 0.6);
+    stroke-width: 2.5;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* 연결선 활성화 시 */
+  .glow-line.highlight {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px #22c55e) drop-shadow(0 0 22px #4ade80);
+  }
+  .line-lit.highlight {
+    opacity: 1;
+    stroke: #4ade80;
+  }
+
+  /* 노드 기본 상태 */
+  .node {
+    position: absolute;
+    background: rgba(26, 31, 44, 0.5);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px 20px;
+    z-index: 2;
+    box-shadow: none;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  /* 노드 활성화 시 */
+  .node.highlight {
+    opacity: 1;
+    background: rgba(26, 31, 44, 0.88);
+    border-color: #38bdf8;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.45), 0 12px 32px rgba(0, 0, 0, 0.6);
+    transform: translateY(-2px) scale(1.02);
+  }
+  .node.final-node.highlight {
+    border-color: #facc15;
+    box-shadow: 0 0 35px rgba(250, 204, 21, 0.45), 0 0 20px rgba(74, 222, 128, 0.4);
+    background: rgba(45, 38, 22, 0.95);
+  }
+  .node.showcase-node.highlight {
+    border-color: #4ade80;
+    box-shadow: 0 0 50px rgba(74, 222, 128, 0.45), 0 20px 60px rgba(0, 0, 0, 0.85);
+  }
+
+  .showcase-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px 12px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px;
+  }
+  .window-dots { display: flex; gap: 7px; }
+  .window-dots span { width: 11px; height: 11px; border-radius: 50%; }
+  
+  .showcase-content {
+    width: 100%; height: 530px; border-radius: 10px; overflow: hidden; position: relative; 
+    background: #000; border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .showcase-img { 
+    width: 100%; height: 100%; 
+    object-fit: cover; 
+    display: block; 
+  }
+
+  .studio-replica {
+    width: 100%; height: 100%; display: grid; grid-template-columns: 38% 62%; gap: 12px; padding: 14px; background: #161925; color: #e2e8f0; font-size: 11px;
+  }
+  .replica-left, .replica-right { background: #1d2130; border: 1px solid #2e364f; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .replica-title { color: #60a5fa; font-weight: 700; font-size: 12px; margin-bottom: 2px; }
+  .replica-box { background: #12151f; border: 1px solid #2a3147; border-radius: 6px; padding: 8px; color: #94a3b8; line-height: 1.4; }
+  .replica-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .replica-step { background: #86efac; color: #064e3b; font-weight: 800; text-align: center; padding: 5px 4px; border-radius: 5px; font-size: 10.5px; }
+  .replica-progress { background: #86efac; color: #064e3b; text-align: center; font-weight: 800; padding: 3px; border-radius: 4px; font-size: 11px; }
+  .replica-console { background: #0b0d14; border: 1px solid #262c40; border-radius: 6px; padding: 8px 10px; font-family: 'Consolas', monospace; font-size: 10px; color: #cbd5e1; line-height: 1.45; height: 150px; overflow: hidden; }
+  .replica-grid-9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex: 1; }
+  .replica-thumb { border-radius: 5px; background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.15); }
+
+  .node-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .node-title-wrap { display: flex; align-items: center; gap: 10px; }
+  .icon-badge { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
+  .node-title { font-size: 16px; font-weight: 700; color: #f8fafc; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+  .node-sub { font-size: 13px; color: #94a3b8; margin-top: 4px; line-height: 1.45; }
+  .ui-field { background: rgba(15, 18, 26, 0.75); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; color: #cbd5e1; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+  
+  .toggle { width: 34px; height: 18px; background: #10b981; border-radius: 99px; position: relative; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transform: translateX(16px); }
+
+  /* 입력창 노드 우측에 추가된 작은 미리보기 버튼 스타일 */
+  .preview-btn {
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: #fff;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .preview-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  }
+
+  .port { width: 9px; height: 9px; background: #4ade80; border: 2px solid #0f1219; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); box-shadow: 0 0 8px #4ade80; }
+  .port.top { top: -5px; }
+  .port.bottom { bottom: -5px; }
+
+  /* 체크 배지: 기본은 숨김, highlight 시에만 나타남 */
+  .check-badge {
+    position: absolute; top: -12px; right: -12px; width: 30px; height: 30px; background: #22c55e; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); z-index: 5;
+    transform: scale(0);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .node.highlight .check-badge {
+    transform: scale(1);
+  }
+
+  .waveform { display: flex; align-items: center; gap: 3px; height: 22px; margin-top: 8px; }
+  .bar { flex: 1; background: #4ade80; height: 16px; border-radius: 2px; }
+  .grid-3x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 54px; height: 54px; }
+  .grid-cell { background: rgba(74, 222, 128, 0.35); border: 1px solid #4ade80; border-radius: 3px; box-shadow: 0 0 6px rgba(74,222,128,0.4); }
+
+  /* image_55dabd.jpg 이미지 미리보기 모달창 스타일 */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(13, 16, 23, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-img {
+    max-width: 85vw;
+    max-height: 85vh;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+    object-fit: contain;
+  }
+</style>
+</head>
+<body>
+
+<!-- image_55dabd.jpg 이미지 미리보기 모달창 (클릭 시 사라짐) -->
+<div class="modal-overlay" id="preview-modal" onclick="closePreviewModal()">
+  <img class="modal-img" src="image_55dabd.jpg" alt="입력창 워크플로우 미리보기" onclick="closePreviewModal()">
+</div>
+
+<div class="viewport" id="viewport">
+  <div class="canvas" id="canvas">
+    <!-- SVG 연결선 -->
+    <svg class="connections" viewBox="0 0 1400 1920">
+      <path class="base-line" d="M 700 135 L 700 195" />
+      <path class="line-lit" id="lit-1" d="M 700 135 L 700 195" />
+      <path class="glow-line" id="glow-1" d="M 700 135 L 700 195" />
+
+      <path class="base-line" d="M 620 315 C 620 355, 420 345, 420 390" />
+      <path class="line-lit" id="lit-2L" d="M 620 315 C 620 355, 420 345, 420 390" />
+      <path class="glow-line" id="glow-2L" d="M 620 315 C 620 355, 420 345, 420 390" />
+
+      <path class="base-line" d="M 780 315 C 780 355, 980 345, 980 390" />
+      <path class="line-lit" id="lit-2R" d="M 780 315 C 780 355, 980 345, 980 390" />
+      <path class="glow-line" id="glow-2R" d="M 780 315 C 780 355, 980 345, 980 390" />
+
+      <path class="base-line" d="M 420 480 L 420 535" />
+      <path class="line-lit" id="lit-3L" d="M 420 480 L 420 535" />
+      <path id="glow-3L" class="glow-line" d="M 420 480 L 420 535" />
+
+      <path class="base-line" d="M 980 480 L 980 535" />
+      <path class="line-lit" id="lit-3R" d="M 980 480 L 980 535" />
+      <path id="glow-3R" class="glow-line" d="M 980 480 L 980 535" />
+
+      <path class="base-line" d="M 420 645 L 420 700" />
+      <path class="line-lit" id="lit-4L" d="M 420 645 L 420 700" />
+      <path id="glow-4L" class="glow-line" d="M 420 645 L 420 700" />
+
+      <path class="base-line" d="M 980 645 L 980 700" />
+      <path class="line-lit" id="lit-4R" d="M 980 645 L 980 700" />
+      <path id="glow-4R" class="glow-line" d="M 980 645 L 980 700" />
+
+      <path class="base-line" d="M 980 805 L 980 850" />
+      <path class="line-lit" id="lit-5R" d="M 980 805 L 980 850" />
+      <path id="glow-5R" class="glow-line" d="M 980 805 L 980 850" />
+
+      <path class="base-line" d="M 420 805 C 420 920, 640 910, 640 985" />
+      <path class="line-lit" id="lit-6L" d="M 420 805 C 420 920, 640 910, 640 985" />
+      <path id="glow-6L" class="glow-line" d="M 420 805 C 420 920, 640 910, 640 985" />
+
+      <path class="base-line" d="M 980 945 C 980 970, 760 955, 760 985" />
+      <path class="line-lit" id="lit-6R" class="line-lit" d="M 980 945 C 980 970, 760 955, 760 985" />
+      <path id="glow-6R" class="glow-line" d="M 980 945 C 980 970, 760 955, 760 985" />
+
+      <path class="base-line" d="M 700 1095 L 700 1140" />
+      <path class="line-lit" id="lit-7" d="M 700 1095 L 700 1140" />
+      <path id="glow-7" class="glow-line" d="M 700 1095 L 700 1140" />
+
+      <path class="base-line" d="M 700 1235 L 700 1295" />
+      <path class="line-lit" id="lit-8" d="M 700 1235 L 700 1295" />
+      <path id="glow-8" class="glow-line" d="M 700 1235 L 700 1295" />
+    </svg>
+
+    <!-- 노드들 -->
+    <div class="node highlight" id="node-input" data-path="input" style="width: 480px; left: 460px; top: 25px;">
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(56,189,248,0.2); color:#38bdf8;">💬</div>
+          <div class="node-title">
+            입 력 창 (User Input)
+            <button class="preview-btn" onclick="openPreviewModal(event)">🔍 미리보기</button>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>Input : 사용자 입력(감정/장르/분위기/스타일/가사여부)</span>
+        <span style="color:#4ade80; font-weight:600;">Ballad R&B ▾</span>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-llm" data-path="llm" style="width: 460px; left: 470px; top: 195px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(16,185,129,0.2); color:#34d399;">✦</div>
+          <div>
+            <div class="node-title">LLM (무료 Gemini API)</div>
+            <div class="node-sub">기획 오케스트레이션 (프롬프트 작성)</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>Orchestration Status</span>
+        <span style="color:#38bdf8;">양갈래 프롬프트 생성 완료</span>
+      </div>
+      <div class="port bottom" style="left: 32%;"></div>
+      <div class="port bottom" style="left: 68%;"></div>
+    </div>
+
+    <div class="node" id="node-suno-prompt" data-path="suno-prompt" style="width: 340px; left: 250px; top: 390px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(168,85,247,0.2); color:#c084fc;">🎵</div>
+          <div class="node-title">Suno 영문 프롬프트</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field"><span>Prompt:</span><span>"Power Ballad R&B, Duet..."</span></div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-nano-prompt" data-path="nano-prompt" style="width: 380px; left: 790px; top: 390px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(245,158,11,0.2); color:#fbbf24;">🍌</div>
+          <div class="node-title">Nano Banana 2.0 영문 프롬프트</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field"><span>Prompt:</span><span>"3x3 storyboard grid..."</span></div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-suno-agent" data-path="suno-agent" style="width: 340px; left: 250px; top: 535px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(59,130,246,0.2); color:#60a5fa;">🔑</div>
+          <div>
+            <div class="node-title">Suno Agent</div>
+            <div class="node-sub">Apiframe API Key 연동</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-nano-agent" data-path="nano-agent" style="width: 380px; left: 790px; top: 535px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(59,130,246,0.2); color:#60a5fa;">🔑</div>
+          <div>
+            <div class="node-title">Nano Banana 2.0</div>
+            <div class="node-sub">Apiframe API Key 연동</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-mp3" data-path="mp3" style="width: 340px; left: 250px; top: 700px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(16,185,129,0.2); color:#34d399;">🔊</div>
+          <div class="node-title">음원(mp3) 생성</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="waveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-grid" data-path="grid" style="width: 380px; left: 790px; top: 700px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(56,189,248,0.2); color:#38bdf8;">🖼️</div>
+          <div class="node-title">3x3 그리드 이미지 생성</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field"><span>Grid Output</span><span>1x Master Sheet</span></div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node" id="node-split" data-path="split" style="width: 380px; left: 790px; top: 850px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header" style="margin-bottom:0;">
+        <div class="node-title-wrap">
+          <div class="grid-3x3">
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+          </div>
+          <div>
+            <div class="node-title">3x3 분할 모듈</div>
+            <div class="node-sub">(9장 이미지로 분할)</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- GPU 렌더링 안내 내용이 추가된 엔진 노드 -->
+    <div class="node" id="node-engine" data-path="engine" style="width: 660px; left: 370px; top: 985px;">
+      <div class="port top" style="left: 41%;"></div>
+      <div class="port top" style="left: 59%;"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(56,189,248,0.25); color:#38bdf8;">🎬</div>
+          <div>
+            <div class="node-title">통합 이미지 합성 & 렌더링 엔진</div>
+            <div class="node-sub">
+              • 씬별 이미지 맵핑 및 모션(페이드 인/페이드 아웃) 적용<br>
+              • 오디오 싱크 맞춤 및 FHD 렌더링 (10~15분 소요)<br>
+              • GPU를 사용하여 렌더링시(2~4분 소요) : 단계별 로그를 통해서 체크 가능
+            </div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node final-node" id="node-final" data-path="final" style="width: 440px; left: 480px; top: 1140px; background: rgba(45, 38, 22, 0.92);">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header" style="margin-bottom:0;">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(250,204,21,0.25); color:#facc15;">💾</div>
+          <div>
+            <div class="node-title" style="color:#fef08a;">최종 음악 동영상 생성 및 mp4 저장</div>
+            <div class="node-sub" style="color:#fde047;">Render Completed · 1080p FHD MP4</div>
+          </div>
+        </div>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <div class="node showcase-node" id="node-showcase" data-path="showcase" style="width: 1020px; left: 190px; top: 1295px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="showcase-bar">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="window-dots">
+            <span style="background:#ef4444;"></span>
+            <span style="background:#f59e0b;"></span>
+            <span style="background:#10b981;"></span>
+          </div>
+          <span style="font-weight:700; font-size:14px; color:#f8fafc;">🎵 AI Domus Music Studio — 최종 결과물 화면 (100% 완료)</span>
+        </div>
+        <span style="background:rgba(16,185,129,0.2); color:#4ade80; border:1px solid rgba(74,222,128,0.4); padding:3px 10px; border-radius:99px; font-size:12px; font-weight:700;">GPU 초고속 가속 완료</span>
+      </div>
+
+      <div class="showcase-content">
+        <img class="showcase-img" src="output02-2.png" alt="AI Domus Music Studio Result">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+
+  let isDragging = false, dragStartX = 0, dragStartY = 0;
+  let camX = 0, camY = 0, camScale = 0.50;
+
+  function applyTransform() {
+    canvas.style.transform = `translate(calc(-50% + ${camX}px), calc(-50% + ${camY}px)) scale(${camScale})`;
+  }
+
+  // 미리보기 모달창 제어 함수
+  function openPreviewModal(e) {
+    e.stopPropagation();
+    document.getElementById('preview-modal').classList.add('active');
+  }
+
+  function closePreviewModal() {
+    document.getElementById('preview-modal').classList.remove('active');
+  }
+
+  viewport.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - camX;
+    dragStartY = e.clientY - camY;
+    viewport.classList.add('dragging');
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    camX = e.clientX - dragStartX;
+    camY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    viewport.classList.remove('dragging');
+  });
+
+  viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = Math.exp(-e.deltaY * 0.0015);
+    camScale = Math.min(2.50, Math.max(0.20, camScale * zoomFactor));
+    applyTransform();
+  }, { passive: false });
+
+  // 각 노드별 상위 루트까지의 연결 경로 데이터 매핑
+  const pathMappings = {
+    'input': { nodes: ['node-input'], lines: [] },
+    'llm': { nodes: ['node-input', 'node-llm'], lines: ['1'] },
+    'suno-prompt': { nodes: ['node-input', 'node-llm', 'node-suno-prompt'], lines: ['1', '2L'] },
+    'nano-prompt': { nodes: ['node-input', 'node-llm', 'node-nano-prompt'], lines: ['1', '2R'] },
+    'suno-agent': { nodes: ['node-input', 'node-llm', 'node-suno-prompt', 'node-suno-agent'], lines: ['1', '2L', '3L'] },
+    'nano-agent': { nodes: ['node-input', 'node-llm', 'node-nano-prompt', 'node-nano-agent'], lines: ['1', '2R', '3R'] },
+    'mp3': { nodes: ['node-input', 'node-llm', 'node-suno-prompt', 'node-suno-agent', 'node-mp3'], lines: ['1', '2L', '3L', '4L'] },
+    'grid': { nodes: ['node-input', 'node-llm', 'node-nano-prompt', 'node-nano-agent', 'node-grid'], lines: ['1', '2R', '3R', '4R'] },
+    'split': { nodes: ['node-input', 'node-llm', 'node-nano-prompt', 'node-nano-agent', 'node-grid', 'node-split'], lines: ['1', '2R', '3R', '4R', '5R'] },
+    'engine': { nodes: ['node-input', 'node-llm', 'node-suno-prompt', 'node-suno-agent', 'node-mp3', 'node-nano-prompt', 'node-nano-agent', 'node-grid', 'node-split', 'node-engine'], lines: ['1', '2L', '2R', '3L', '3R', '4L', '4R', '5R', '6L', '6R'] },
+    'final': { nodes: ['node-input', 'node-llm', 'node-suno-prompt', 'node-suno-agent', 'node-mp3', 'node-nano-prompt', 'node-nano-agent', 'node-grid', 'node-split', 'node-engine', 'node-final'], lines: ['1', '2L', '2R', '3L', '3R', '4L', '4R', '5R', '6L', '6R', '7'] },
+    'showcase': { nodes: ['node-input', 'node-llm', 'node-suno-prompt', 'node-suno-agent', 'node-mp3', 'node-nano-prompt', 'node-nano-agent', 'node-grid', 'node-split', 'node-engine', 'node-final', 'node-showcase'], lines: ['1', '2L', '2R', '3L', '3R', '4L', '4R', '5R', '6L', '6R', '7', '8'] }
+  };
+
+  // 노드 클릭 시 토글 기능 (이미 활성화된 노드를 다시 클릭하면 비활성화)
+  document.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pathKey = node.getAttribute('data-path');
+      const targetData = pathMappings[pathKey];
+      if (!targetData) return;
+
+      const isAlreadyHighlighted = node.classList.contains('highlight');
+
+      if (isAlreadyHighlighted) {
+        targetData.nodes.forEach(nodeId => {
+          const targetNode = document.getElementById(nodeId);
+          if (targetNode) targetNode.classList.remove('highlight');
+        });
+        targetData.lines.forEach(lineId => {
+          const glow = document.getElementById('glow-' + lineId);
+          const lit = document.getElementById('lit-' + lineId);
+          if (glow) glow.classList.remove('highlight');
+          if (lit) lit.classList.remove('highlight');
+        });
+      } else {
+        targetData.nodes.forEach(nodeId => {
+          const targetNode = document.getElementById(nodeId);
+          if (targetNode) targetNode.classList.add('highlight');
+        });
+        targetData.lines.forEach(lineId => {
+          const glow = document.getElementById('glow-' + lineId);
+          const lit = document.getElementById('lit-' + lineId);
+          if (glow) glow.classList.add('highlight');
+          if (lit) lit.classList.add('highlight');
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

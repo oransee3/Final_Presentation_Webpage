@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbnail Designer Workflow - Preview Modal Button</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #0d1017;
+    color: #e2e8f0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+  }
+
+  /* 캔버스 뷰포트 & 다크 그리드 배경 */
+  .viewport {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background-color: #0f1219;
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 45px 45px;
+    perspective: 1200px;
+    cursor: grab;
+  }
+  .viewport.dragging {
+    cursor: grabbing;
+  }
+
+  .canvas {
+    width: 1400px;
+    height: 1450px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.64);
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .canvas.manual-mode {
+    transition: transform 0.08s ease-out;
+  }
+
+  /* SVG 연결선 */
+  svg.connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .base-line {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.08);
+    stroke-width: 2.5;
+    transition: stroke 0.3s;
+  }
+  .glow-line {
+    fill: none;
+    stroke: #4ade80;
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-dasharray: 40 1000;
+    stroke-dashoffset: 40;
+    filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px #4ade80);
+    opacity: 0;
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  .line-lit {
+    fill: none;
+    stroke: rgba(74, 222, 128, 0.6);
+    stroke-width: 2.5;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .glow-line.highlight {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px #22c55e) drop-shadow(0 0 22px #4ade80);
+  }
+  .line-lit.highlight {
+    opacity: 1;
+    stroke: #4ade80;
+  }
+
+  /* 노드 기본 상태 */
+  .node {
+    position: absolute;
+    background: rgba(26, 31, 44, 0.5);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px 22px;
+    z-index: 2;
+    box-shadow: none;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .node.highlight {
+    opacity: 1;
+    background: rgba(26, 31, 44, 0.88);
+    border-color: #38bdf8;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.45), 0 12px 32px rgba(0, 0, 0, 0.6);
+    transform: translateY(-3px) scale(1.02);
+  }
+  .node.warm-node.highlight {
+    background: linear-gradient(145deg, rgba(48, 36, 28, 0.9), rgba(28, 25, 34, 0.92));
+    border-color: #fbbf24;
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.4);
+  }
+  .node.blue-node.highlight {
+    background: linear-gradient(145deg, rgba(23, 37, 68, 0.9), rgba(22, 28, 45, 0.92));
+    border-color: #3b82f6;
+  }
+  .node.pink-node.highlight {
+    background: linear-gradient(145deg, rgba(62, 24, 38, 0.92), rgba(34, 20, 32, 0.95));
+    border-color: #fb7185;
+    box-shadow: 0 0 32px rgba(244, 63, 94, 0.45), 0 0 15px rgba(74, 222, 128, 0.3);
+  }
+  .node.showcase-node.highlight {
+    border-color: #4ade80;
+    box-shadow: 0 0 50px rgba(74, 222, 128, 0.45), 0 20px 60px rgba(0, 0, 0, 0.85);
+  }
+
+  .node.warm-node { border-color: rgba(251, 191, 36, 0.1); }
+  .node.blue-node { border-color: rgba(59, 130, 246, 0.1); }
+  .node.pink-node { border-color: rgba(244, 63, 94, 0.1); }
+
+  /* 쇼케이스 노드 UI */
+  .showcase-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px 12px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 10px;
+  }
+  .window-dots {
+    display: flex;
+    gap: 7px;
+  }
+  .window-dots span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+  .showcase-content {
+    width: 100%;
+    height: 520px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: #12131a;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .showcase-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .designer-replica {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #14161f;
+    color: #e2e8f0;
+    font-size: 11px;
+  }
+  .rep-topbar {
+    height: 40px;
+    background: #1a1d29;
+    border-bottom: 1px solid #2a2f42;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+  }
+  .rep-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 210px 1fr 250px;
+    overflow: hidden;
+  }
+  .rep-sidebar-l, .rep-sidebar-r {
+    background: #191c26;
+    border-right: 1px solid #282d3e;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .rep-sidebar-r {
+    border-right: none;
+    border-left: 1px solid #282d3e;
+  }
+  .rep-layer-item {
+    background: #212634;
+    border: 1px solid #32394e;
+    border-radius: 5px;
+    padding: 7px 9px;
+    font-size: 10.5px;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rep-center {
+    background: #11131a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 20px;
+  }
+  .rep-artboard {
+    width: 470px;
+    height: 265px;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.75);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: radial-gradient(circle at 30% 60%, rgba(251, 146, 60, 0.55), transparent 55%),
+                radial-gradient(circle at 75% 50%, rgba(245, 158, 11, 0.5), transparent 50%),
+                linear-gradient(135deg, #1e293b 0%, #334155 45%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .rep-artboard::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 8px solid rgba(30, 20, 15, 0.65);
+    border-radius: 3px;
+    pointer-events: none;
+  }
+  .art-author {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+    align-self: flex-end;
+    margin-right: 75px;
+    margin-bottom: 6px;
+  }
+  .art-main-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #38bdf8;
+    text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 4px 12px rgba(0,0,0,0.9);
+    letter-spacing: -0.5px;
+  }
+  .art-sub-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-top: 12px;
+    text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000;
+  }
+  .art-qr {
+    position: absolute;
+    right: 22px;
+    bottom: 36px;
+    width: 48px;
+    height: 48px;
+    background: #fff;
+    padding: 4px;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+  .art-qr div { background: #111; }
+  .art-qr div:nth-child(even) { background: transparent; }
+  .art-safezone {
+    position: absolute;
+    right: 16px;
+    bottom: 10px;
+    border: 1.5px dashed #f43f5e;
+    background: rgba(244, 63, 94, 0.15);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .rep-bottom-toolbar {
+    position: absolute;
+    bottom: 12px;
+    background: #1d2130;
+    border: 1px solid #32394e;
+    border-radius: 8px;
+    padding: 6px 14px;
+    display: flex;
+    gap: 12px;
+    font-size: 10.5px;
+    color: #cbd5e1;
+  }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .node-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .icon-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: bold;
+  }
+  .node-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.3px;
+  }
+  .node-sub {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 3px;
+  }
+
+  .ui-field {
+    background: rgba(15, 18, 26, 0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .toggle {
+    width: 36px;
+    height: 19px;
+    background: #334155;
+    border-radius: 99px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .node.highlight .toggle { background: #10b981; }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2.5px; left: 2.5px;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .node.highlight .toggle::after { transform: translateX(17px); }
+
+  /* 작은 미리보기 버튼 공통 스타일 */
+  .preview-btn {
+    color: #fff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .preview-btn.warm {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  }
+  .preview-btn.warm:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  }
+  .preview-btn.pink {
+    background: linear-gradient(135deg, #f43f5e, #be123c);
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+  }
+  .preview-btn.pink:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #fb7185, #f43f5e);
+  }
+
+  .port {
+    width: 10px;
+    height: 10px;
+    background: #94a3b8;
+    border: 2px solid #0f1219;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s;
+  }
+  .port.top { top: -5px; }
+  .port.bottom { bottom: -5px; }
+  .node.highlight .port {
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+  }
+
+  /* 체크 배지 */
+  .check-badge {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 32px;
+    height: 32px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+    transform: scale(0);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 5;
+  }
+  .node.highlight .check-badge { transform: scale(1); }
+
+  /* 이미지 미리보기 모달창 공통 스타일 */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(13, 16, 23, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-img {
+    max-width: 85vw;
+    max-height: 85vh;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+    object-fit: contain;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .modal-overlay.active .modal-img {
+    transform: scale(1);
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. 음악동영상자동화프로그램02.png 미리보기 모달 -->
+<div class="modal-overlay" id="modal-thumbnail" onclick="closeModal('modal-thumbnail')">
+  <img class="modal-img" src="음악동영상자동화프로그램02.png" alt="썸네일 디자이너 미리보기" onclick="closeModal('modal-thumbnail')">
+</div>
+
+<!-- 2. AI 쳇봇.png 미리보기 모달 -->
+<div class="modal-overlay" id="modal-chatbot" onclick="closeModal('modal-chatbot')">
+  <img class="modal-img" src="AI 쳇봇.png" alt="AI 챗봇 미리보기" onclick="closeModal('modal-chatbot')">
+</div>
+
+<div class="viewport" id="viewport">
+  <div class="canvas" id="canvas">
+    <!-- SVG 연결선 -->
+    <svg class="connections" viewBox="0 0 1400 1450">
+      <path class="base-line" d="M 430 190 L 430 280" />
+      <path id="lit-1" class="line-lit" d="M 430 190 L 430 280" />
+      <path id="glow-1" class="glow-line" d="M 430 190 L 430 280" />
+
+      <path class="base-line" d="M 430 420 L 430 475 Q 430 495 450 495 L 680 495 Q 700 495 700 515 L 700 555" />
+      <path id="lit-2L" class="line-lit" d="M 430 420 L 430 475 Q 430 495 450 495 L 680 495 Q 700 495 700 515 L 700 555" />
+      <path id="glow-2L" class="glow-line" d="M 430 420 L 430 475 Q 430 495 450 495 L 680 495 Q 700 495 700 515 L 700 555" />
+
+      <path class="base-line" d="M 970 420 L 970 475 Q 970 495 950 495 L 720 495 Q 700 495 700 515 L 700 555" />
+      <path id="lit-2R" class="line-lit" d="M 970 420 L 970 475 Q 970 495 950 495 L 720 495 Q 700 495 700 515 L 700 555" />
+      <path id="glow-2R" class="glow-line" d="M 970 420 L 970 475 Q 970 495 950 495 L 720 495 Q 700 495 700 515 L 700 555" />
+
+      <path class="base-line" d="M 700 695 L 700 765" />
+      <path id="lit-3" class="line-lit" d="M 700 695 L 700 765" />
+      <path id="glow-3" class="glow-line" d="M 700 695 L 700 765" />
+    </svg>
+
+    <!-- 노드 1: 썸네일 제작 (우측 미리보기 버튼) -->
+    <div class="node warm-node highlight" id="node-create" data-path="create" style="width: 440px; left: 210px; top: 50px;">
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(251,191,36,0.2); color:#fbbf24;">🎨</div>
+          <div>
+            <div class="node-title" style="color:#fef3c7; display: flex; align-items: center;">
+              썸네일 제작
+              <button class="preview-btn warm" onclick="openModal(event, 'modal-thumbnail')">🔍 미리보기</button>
+            </div>
+            <div class="node-sub">Thumbnail Studio Pro (Native PyQt6 v2.0)</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>레이어 · 텍스트 · QR 코드 · Safe Zone</span>
+        <span style="color:#fbbf24; font-weight:700;">디자인 편집 ▾</span>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- 노드 2L: 썸네일 이미지(png) -->
+    <div class="node blue-node" id="node-png" data-path="png" style="width: 420px; left: 220px; top: 280px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(56,189,248,0.2); color:#38bdf8;">🖼️</div>
+          <div>
+            <div class="node-title">썸네일 이미지 (png)</div>
+            <div class="node-sub">고해상도 썸네일 이미지 렌더링 및 저장</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>Output File</span>
+        <span style="color:#38bdf8; font-weight:600;">썸네일4-1.png (1280x720 HD)</span>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- 노드 2R: 음악 동영상(mp4) -->
+    <div class="node blue-node" id="node-mp4" data-path="mp4" style="width: 420px; left: 760px; top: 280px;">
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(96,165,250,0.2); color:#60a5fa;">🎬</div>
+          <div>
+            <div class="node-title">음악 동영상 (mp4)</div>
+            <div class="node-sub">AI Domus Music Studio 렌더링 결과물</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>Video Source</span>
+        <span style="color:#4ade80; font-weight:600;">[Ballad R&B] Vol.1_FHD.mp4</span>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- 노드 3: 유튜브 업로드 (우측 AI 챗봇 미리보기 버튼 추가됨) -->
+    <div class="node pink-node" id="node-upload" data-path="upload" style="width: 580px; left: 410px; top: 555px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="node-header">
+        <div class="node-title-wrap">
+          <div class="icon-badge" style="background: rgba(244,63,94,0.25); color:#fb7185;">🚀</div>
+          <div>
+            <div class="node-title" style="color:#ffe4e6; font-size:19px; display: flex; align-items: center;">
+              유튜브 업로드 (YouTube Upload)
+              <button class="preview-btn pink" onclick="openModal(event, 'modal-chatbot')">🤖 봇 미리보기</button>
+            </div>
+            <div class="node-sub" style="color:#fda4af;">썸네일 이미지(png) + 음악 동영상(mp4) 원클릭 통합 업로드</div>
+          </div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="ui-field">
+        <span>Upload Status</span>
+        <span style="color:#fb7185; font-weight:700;">● YouTube Data API v3 연동 완료</span>
+      </div>
+      <div class="port bottom"></div>
+    </div>
+
+    <!-- 노드 4: 실제 완성 결과물 쇼케이스 -->
+    <div class="node showcase-node" id="node-showcase" data-path="showcase" style="width: 1060px; left: 170px; top: 765px;">
+      <div class="port top"></div>
+      <div class="check-badge">✓</div>
+      <div class="showcase-bar">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="window-dots">
+            <span style="background:#ef4444;"></span>
+            <span style="background:#f59e0b;"></span>
+            <span style="background:#10b981;"></span>
+          </div>
+          <span style="font-weight:700; font-size:14px; color:#f8fafc;">🎨 유튜브 썸네일 디자이너 Pro (Native PyQt6 v2.0) — 실제 구동 화면</span>
+        </div>
+        <span style="background:linear-gradient(135deg,#e11d48,#f43f5e); color:#fff; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:700;">🚀 유튜브 업로드 완료</span>
+      </div>
+
+      <div class="showcase-content">
+        <img id="result-screenshot" class="showcase-img" src="output03.png" alt="Thumbnail Studio Pro Result"
+             onerror="this.style.display='none'; document.getElementById('fallback-ui').style.display='flex';">
+
+        <div id="fallback-ui" class="designer-replica" style="display:none;">
+          <div class="rep-topbar">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="color:#fbbf24; font-weight:800; font-size:13px;">🎨 Thumbnail Studio Pro</span>
+              <span class="rep-layer-item" style="padding:4px 8px;">💾 프로젝트 저장</span>
+              <span class="rep-layer-item" style="padding:4px 8px;">📂 프로젝트 열기</span>
+              <span class="rep-layer-item" style="padding:4px 10px; border-color:#3b82f6; color:#fff;">기능테스트02 ✕</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="rep-layer-item" style="padding:4px 8px;">🛡️ Safe Zone</span>
+              <span class="rep-layer-item" style="padding:4px 8px;"># Grid</span>
+              <span class="rep-layer-item" style="padding:4px 8px;">💾 이미지 저장하기</span>
+              <span style="background:#e11d48; color:#fff; font-weight:800; padding:5px 12px; border-radius:6px;">🚀 유튜브 업로드 완료</span>
+            </div>
+          </div>
+
+          <div class="rep-body">
+            <div class="rep-sidebar-l">
+              <div style="display:flex; gap:6px; margin-bottom:4px;">
+                <span style="background:#2563eb; color:#fff; padding:4px 8px; border-radius:4px; font-weight:700;">Layers</span>
+                <span style="color:#94a3b8; padding:4px 8px;">✨ 템플릿</span>
+                <span style="color:#94a3b8; padding:4px 8px;">🔤 폰트</span>
+              </div>
+              <div style="display:flex; gap:4px; margin-bottom:4px;">
+                <div class="rep-layer-item" style="flex:1; justify-content:center;">+ 텍스트</div>
+                <div class="rep-layer-item" style="flex:1; justify-content:center;">+ 도형</div>
+              </div>
+              <div class="rep-layer-item">🖼️ 이미지: qr_250x250.png</div>
+              <div class="rep-layer-item">🔤 새 텍스트 레이어</div>
+              <div class="rep-layer-item">🔤 서브 타이틀</div>
+              <div class="rep-layer-item" style="border-color:#38bdf8;">🔤 메인 타이틀</div>
+              <div class="rep-layer-item">🖼️ 이미지: frame_03.png</div>
+              <div class="rep-layer-item">💠 배경 (Background)</div>
+            </div>
+
+            <div class="rep-center">
+              <div class="rep-artboard">
+                <div class="art-author">Sang-hoon. Kim,</div>
+                <div class="art-main-title">[Ballad R&B] Collection Vol. 1</div>
+                <div class="art-sub-title">Echoes in the Chaos</div>
+                <div class="art-qr">
+                  <div></div><div></div><div></div><div></div>
+                  <div></div><div></div><div></div><div></div>
+                  <div></div><div></div><div></div><div></div>
+                  <div></div><div></div><div></div><div></div>
+                </div>
+                <div class="art-safezone">⚠️ 타임스탬프 가림 주의 · 12:34</div>
+              </div>
+
+              <div class="rep-bottom-toolbar">
+                <span>🖱️ 선택 (V)</span>
+                <span>⬜ 직사각형</span>
+                <span>⚪ 원형 (O)</span>
+                <span>⭐ 별</span>
+                <span>➡️ 화살표</span>
+                <span>🔤 텍스트 (T)</span>
+                <span>🖼️ 이미지</span>
+                <span style="color:#38bdf8; font-weight:700;">65%</span>
+              </div>
+            </div>
+
+            <div class="rep-sidebar-r">
+              <div style="color:#94a3b8; font-weight:700;">위치 및 크기 (Transform)</div>
+              <div class="rep-layer-item" style="justify-content:space-between;"><span>X / Y</span><strong>367 / 333</strong></div>
+              <div class="rep-layer-item" style="justify-content:space-between;"><span>W / H</span><strong>545 / 81</strong></div>
+              <div style="color:#94a3b8; font-weight:700; margin-top:4px;">채우기 및 색상 (Fill)</div>
+              <div style="display:flex; gap:6px;">
+                <div style="flex:1; background:#fff; color:#000; font-weight:700; text-align:center; padding:6px; border-radius:4px;">■ 색상 1</div>
+                <div style="flex:1; background:#06b6d4; color:#000; font-weight:700; text-align:center; padding:6px; border-radius:4px;">■ 색상 2</div>
+              </div>
+              <div style="color:#94a3b8; font-weight:700; margin-top:4px;">외곽선 및 그림자 (Stroke)</div>
+              <div class="rep-layer-item" style="justify-content:space-between;"><span>■ 외곽선 색</span><strong>두께: 4</strong></div>
+              <div style="color:#94a3b8; font-weight:700; margin-top:4px;">🚀 썸네일 및 영상 보관함</div>
+              <div class="rep-layer-item" style="justify-content:space-between;"><span>PNG Image (*.png)</span><strong>1280x720 HD</strong></div>
+              <div class="rep-layer-item" style="color:#4ade80; font-weight:700;">📄 썸네일4-1.png</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+
+  let isDragging = false, dragStartX = 0, dragStartY = 0;
+  let camX = 0, camY = 0, camScale = 0.64;
+
+  function applyTransform() {
+    canvas.style.transform = `translate(calc(-50% + ${camX}px), calc(-50% + ${camY}px)) scale(${camScale})`;
+  }
+
+  viewport.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - camX;
+    dragStartY = e.clientY - camY;
+    viewport.classList.add('dragging');
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    camX = e.clientX - dragStartX;
+    camY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    viewport.classList.remove('dragging');
+  });
+
+  viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = Math.exp(-e.deltaY * 0.0015);
+    camScale = Math.min(2.50, Math.max(0.20, camScale * zoomFactor));
+    applyTransform();
+  }, { passive: false });
+
+  // 모달창 제어 함수 (이벤트 버블링 차단 및 타겟 모달 열기/닫기)
+  function openModal(e, modalId) {
+    e.stopPropagation();
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+  }
+
+  // ESC 키로 모달 닫기
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(modal => modal.classList.remove('active'));
+    }
+  });
+
+  // 각 노드별 상위 루트까지의 연결 경로 데이터 매핑
+  const pathMappings = {
+    'create': { nodes: ['node-create'], lines: [] },
+    'png': { nodes: ['node-create', 'node-png'], lines: ['1'] },
+    'mp4': { nodes: ['node-create', 'node-mp4'], lines: ['1'] },
+    'upload': { nodes: ['node-create', 'node-png', 'node-mp4', 'node-upload'], lines: ['1', '2L', '2R'] },
+    'showcase': { nodes: ['node-create', 'node-png', 'node-mp4', 'node-upload', 'node-showcase'], lines: ['1', '2L', '2R', '3'] }
+  };
+
+  // 노드 클릭 시 토글 기능
+  document.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pathKey = node.getAttribute('data-path');
+      const targetData = pathMappings[pathKey];
+      if (!targetData) return;
+
+      const isAlreadyHighlighted = node.classList.contains('highlight');
+
+      if (isAlreadyHighlighted) {
+        targetData.nodes.forEach(nodeId => {
+          const targetNode = document.getElementById(nodeId);
+          if (targetNode) targetNode.classList.remove('highlight');
+        });
+        targetData.lines.forEach(lineId => {
+          const glow = document.getElementById('glow-' + lineId);
+          const lit = document.getElementById('lit-' + lineId);
+          if (glow) glow.classList.remove('highlight');
+          if (lit) lit.classList.remove('highlight');
+        });
+      } else {
+        targetData.nodes.forEach(nodeId => {
+          const targetNode = document.getElementById(nodeId);
+          if (targetNode) targetNode.classList.add('highlight');
+        });
+        targetData.lines.forEach(lineId => {
+          const glow = document.getElementById('glow-' + lineId);
+          const lit = document.getElementById('lit-' + lineId);
+          if (glow) glow.classList.add('highlight');
+          if (lit) lit.classList.add('highlight');
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

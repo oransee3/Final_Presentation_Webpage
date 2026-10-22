@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Domus Music Studio - Live Demonstration</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #080a0f;
+    color: #e2e8f0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+  }
+
+  /* 1. 은은한 실시간 스타필드 + 그리드 배경 */
+  #bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* 2. 뷰포트 (드래그 없이 화면 정중앙 고정) */
+  .viewport {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    cursor: default;
+  }
+
+  /* 3. 중앙 확장 고정 카드 (모션 제거 & 가독성 강화) */
+  .qr-card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 60px;
+    background: rgba(18, 22, 33, 0.90);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 2px solid rgba(56, 189, 248, 0.35);
+    border-radius: 32px;
+    box-shadow: 
+      0 30px 80px rgba(0, 0, 0, 0.8),
+      0 0 50px rgba(56, 189, 248, 0.18),
+      inset 0 0 25px rgba(56, 189, 248, 0.06);
+    max-width: 820px;
+    width: 92%;
+    text-align: center;
+    position: relative;
+  }
+
+  /* 상단 뱃지 */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 20px;
+    background: rgba(56, 189, 248, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 9999px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .badge-dot {
+    width: 9px;
+    height: 9px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #4ade80;
+  }
+
+  /* 대형 QR 코드 래퍼 */
+  .qr-link-wrap {
+    text-decoration: none;
+    display: inline-block;
+  }
+  .qr-frame {
+    position: relative;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 
+      0 0 35px rgba(255, 255, 255, 0.2),
+      0 0 65px rgba(56, 189, 248, 0.28);
+    display: inline-block;
+  }
+  .qr-img {
+    width: 340px;
+    height: 340px;
+    display: block;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  /* 텍스트 영역 */
+  .title-group {
+    margin-top: 34px;
+  }
+  .main-text {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.65;
+    color: #f8fafc;
+    word-break: keep-all;
+    letter-spacing: -0.4px;
+  }
+  .highlight-gradient {
+    background: linear-gradient(135deg, #38bdf8 0%, #4ade80 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+  }
+  .highlight-accent {
+    color: #fbbf24;
+    font-weight: 800;
+    text-shadow: 0 0 14px rgba(251, 191, 36, 0.45);
+  }
+
+  .sub-caption {
+    margin-top: 18px;
+    font-size: 15px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .sub-caption span {
+    font-family: 'Consolas', monospace;
+    color: #38bdf8;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- 네온 스타필드 + 그리드 배경 -->
+<canvas id="bg-canvas"></canvas>
+
+<div class="viewport" id="viewport">
+  <div class="qr-card-container">
+    
+    <!-- 실시간 시연 뱃지 -->
+    <div class="badge">
+      <span class="badge-dot"></span>
+      LIVE DEMONSTRATION & CHANNEL
+    </div>
+
+    <!-- 대형 QR 코드 영역 (스캔 및 클릭 지원) -->
+    <a href="#" target="_blank" class="qr-link-wrap" title="클릭하여 유튜브 채널로 바로 이동">
+      <div class="qr-frame">
+        <img src="codyssey_qr_300x300.png" alt="YouTube Channel QR Code" class="qr-img">
+      </div>
+    </a>
+
+    <!-- 하단 핵심 시연 문구 (확대 적용) -->
+    <div class="title-group">
+      <p class="main-text">
+        <span class="highlight-gradient">AI 멀티모달 Agent</span> 기반 음악 동영상 생성 자동화 시스템을 사용하여<br>
+        원스톱 <span class="highlight-accent">유튜브 음악동영상 콘텐츠</span>를 업로드해 보겠습니다.
+      </p>
+      <div class="sub-caption">
+        <span>[SCAN OR CLICK]</span> 스마트폰 카메라로 QR 코드를 비추거나 클릭하세요
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ==========================================================
+     스타필드 & 사이버네틱 그리드 배경 캔버스
+     ========================================================== */
+  const bgCanvas = document.getElementById('bg-canvas');
+  const bgCtx = bgCanvas.getContext('2d');
+
+  let width = (bgCanvas.width = window.innerWidth);
+  let height = (bgCanvas.height = window.innerHeight);
+
+  window.addEventListener('resize', () => {
+    width = bgCanvas.width = window.innerWidth;
+    height = bgCanvas.height = window.innerHeight;
+  });
+
+  const STAR_COUNT = 90;
+  const stars = [];
+  const starColors = ['#4ade80', '#22c55e', '#38bdf8', '#0ea5e9', '#60a5fa'];
+
+  for (let i = 0; i < STAR_COUNT; i++) {
+    stars.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: Math.random() < 0.25 ? Math.random() * 1.6 + 1.2 : Math.random() * 0.9 + 0.6,
+      color: starColors[Math.floor(Math.random() * starColors.length)],
+      alpha: Math.random() * 0.7 + 0.3,
+      alphaSpeed: (Math.random() * 0.015 + 0.005) * (Math.random() < 0.5 ? 1 : -1)
+    });
+  }
+
+  function drawBackground() {
+    bgCtx.clearRect(0, 0, width, height);
+
+    // 1) 딥 사이버네틱 배경 그라디언트
+    const grad = bgCtx.createRadialGradient(width * 0.5, height * 0.5, 50, width * 0.5, height * 0.5, Math.max(width, height) * 0.85);
+    grad.addColorStop(0, '#0a0e17');
+    grad.addColorStop(1, '#05070a');
+    bgCtx.fillStyle = grad;
+    bgCtx.fillRect(0, 0, width, height);
+
+    // 2) 다크 네온 그리드
+    const gridSize = 45;
+    bgCtx.lineWidth = 1;
+    bgCtx.strokeStyle = 'rgba(56, 189, 248, 0.045)';
+
+    bgCtx.beginPath();
+    for (let x = 0; x < width; x += gridSize) {
+      bgCtx.moveTo(x, 0);
+      bgCtx.lineTo(x, height);
+    }
+    for (let y = 0; y < height; y += gridSize) {
+      bgCtx.moveTo(0, y);
+      bgCtx.lineTo(width, y);
+    }
+    bgCtx.stroke();
+
+    // 3) 파티클 스타필드 렌더링
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      s.alpha += s.alphaSpeed;
+      if (s.alpha > 0.95 || s.alpha < 0.2) {
+        s.alphaSpeed = -s.alphaSpeed;
+      }
+
+      bgCtx.save();
+      bgCtx.globalAlpha = s.alpha;
+      bgCtx.fillStyle = s.color;
+      bgCtx.shadowBlur = s.radius > 1.2 ? 10 : 5;
+      bgCtx.shadowColor = s.color;
+
+      bgCtx.beginPath();
+      bgCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+      bgCtx.fill();
+      bgCtx.restore();
+    }
+
+    requestAnimationFrame(drawBackground);
+  }
+  drawBackground();
+</script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

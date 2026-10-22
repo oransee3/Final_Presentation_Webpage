@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학습내용 쇼케이스</title>
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-space: #030712;
+      --card-bg: rgba(13, 22, 38, 0.75);
+      --card-border: rgba(45, 212, 191, 0.2);
+      --neon-cyan: #22d3ee;
+      --neon-emerald: #10b981;
+      --neon-glow: rgba(34, 211, 238, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 전체 화면 스크롤바 제거 및 100vh 피팅 */
+    html, body {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-space);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 24px;
+      position: relative;
+    }
+
+    /* 첨부 이미지 배경: 딥 네온 격자망 */
+    .space-grid-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: 
+        linear-gradient(to right, rgba(20, 60, 85, 0.22) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(20, 60, 85, 0.22) 1px, transparent 1px);
+      background-size: 58px 58px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 시안/그린 부유 발광 파티클 캔버스 */
+    #particlesCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 메인 컨테이너 */
+    .container {
+      width: 100%;
+      max-width: 1600px;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 상단 헤더 */
+    header {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 10px 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .step-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .step-tab-btn {
+      padding: 8px 22px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .step-tab-btn:hover {
+      background: rgba(30, 41, 59, 0.9);
+      color: #f8fafc;
+      border-color: rgba(34, 211, 238, 0.4);
+    }
+
+    .step-tab-btn.active {
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.7) 0%, rgba(13, 148, 136, 0.7) 100%);
+      color: #ffffff;
+      border-color: #22d3ee;
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
+    }
+
+    .step-tab-btn.active .step-indicator {
+      background: #22d3ee;
+      color: #042f2e;
+    }
+
+    .step-indicator {
+      font-size: 0.74rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 900;
+    }
+
+    /* 메인 쇼케이스 영역 */
+    .showcase-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 18px;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* 좌측 번호 리스트 카드 */
+    .list-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 16px 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .list-header {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    #missionListContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      padding-right: 4px;
+      flex: 1;
+    }
+
+    #missionListContainer::-webkit-scrollbar {
+      width: 4px;
+    }
+    #missionListContainer::-webkit-scrollbar-thumb {
+      background: rgba(34, 211, 238, 0.3);
+      border-radius: 4px;
+    }
+
+    .mission-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid transparent;
+      background: rgba(15, 23, 42, 0.4);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      text-align: left;
+      gap: 10px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .mission-item:hover {
+      background: rgba(30, 41, 59, 0.7);
+      transform: translateX(3px);
+      border-color: rgba(34, 211, 238, 0.3);
+    }
+
+    .mission-item.active {
+      background: rgba(14, 116, 144, 0.25);
+      border-color: #22d3ee;
+      box-shadow: 0 4px 16px rgba(34, 211, 238, 0.2);
+    }
+
+    .item-num {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mission-item.active .item-num {
+      background: #22d3ee;
+      color: #042f2e;
+      font-weight: 900;
+      border-color: #67e8f9;
+    }
+
+    .item-content {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      gap: 2px;
+    }
+
+    .item-step-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+    }
+
+    .item-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 우측 2열 뷰어 */
+    .viewer-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* 상단 배지 헤더 */
+    .viewer-header-badge {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(8, 51, 68, 0.9) 0%, rgba(13, 148, 136, 0.9) 100%);
+      color: #ffffff;
+      padding: 5px 18px 5px 6px;
+      border-radius: 999px;
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.3);
+      gap: 10px;
+      align-self: flex-start;
+      margin-bottom: 12px;
+      border: 1.5px solid rgba(34, 211, 238, 0.6);
+      flex-shrink: 0;
+    }
+
+    .badge-number-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #03232b;
+      color: #22d3ee;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #22d3ee;
+    }
+
+    .badge-title-text {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* 결과물 시각화 윈도우 */
+    .visual-window {
+      background: rgba(5, 11, 20, 0.85);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.85);
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+    }
+
+    /* 16:9 이미지 전용 컨테이너 */
+    .media-16-9-box {
+      height: 100%;
+      max-height: calc(100vh - 180px);
+      aspect-ratio: 16 / 9;
+      max-width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid rgba(34, 211, 238, 0.45);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(34, 211, 238, 0.2);
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-16-9-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background-color: #030712;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 배경 레이어[cite: 1] -->
+  <div class="space-grid-bg"></div>
+  <canvas id="particlesCanvas"></canvas>
+
+  <div class="container">
+    <header>
+      <nav class="step-tabs">
+        <button class="step-tab-btn active" onclick="switchStage('BASIC', this)">
+          <span class="step-indicator">1단계</span> 1단계: AI 도구 학습 (Basic)
+        </button>
+        <button class="step-tab-btn" onclick="switchStage('ADVANCED', this)">
+          <span class="step-indicator">2단계</span> 2단계: AI 활용 학습 (Advanced)
+        </button>
+        <button class="step-tab-btn" onclick="switchStage('MASTER', this)">
+          <span class="step-indicator">3단계</span> 3단계: AI 응용 학습 (Master)
+        </button>
+      </nav>
+    </header>
+
+    <main class="showcase-layout">
+      <!-- 좌측 번호 리스트 카드 -->
+      <aside class="list-card">
+        <div class="list-header">
+          <span id="listCategoryTitle">1단계 학습 미션</span>
+          <span id="counterText">3개 중 1번째</span>
+        </div>
+        <div id="missionListContainer">
+          <!-- 미션 버튼 동적 렌더링 -->
+        </div>
+      </aside>
+
+      <!-- 우측 2열 뷰어 -->
+      <section class="viewer-card">
+        <div class="viewer-header-badge">
+          <div class="badge-number-circle" id="badgeNum">1</div>
+          <div class="badge-title-text" id="badgeTitle">멀티모달 콘텐츠 제작</div>
+        </div>
+
+        <!-- 16:9 비율 최적화 시각화 영역[cite: 3] -->
+        <div class="visual-window" id="visualWindow"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /* ========================================================
+       1. 캔버스 스타더스트 파티클 엔진
+       ======================================================== */
+    const canvas = document.getElementById('particlesCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const colors = ['#22d3ee', '#38bdf8', '#34d399', '#10b981', '#6ee7b7'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset(true);
+      }
+      reset(init = false) {
+        this.x = Math.random() * canvas.width;
+        this.y = init ? Math.random() * canvas.height : canvas.height + 10;
+        this.radius = Math.random() * 2.2 + 1.2;
+        this.speedY = -(Math.random() * 0.45 + 0.15);
+        this.speedX = (Math.random() - 0.5) * 0.2;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.alpha = Math.random() * 0.6 + 0.3;
+        this.pulseSpeed = Math.random() * 0.02 + 0.01;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.alpha += Math.sin(Date.now() * 0.002 * this.pulseSpeed) * 0.015;
+        if (this.alpha < 0.2) this.alpha = 0.2;
+        if (this.alpha > 0.95) this.alpha = 0.95;
+
+        if (this.y < -10 || this.x < -10 || this.x > canvas.width + 10) {
+          this.reset(false);
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = this.radius * 5.5;
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 48; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* ========================================================
+       2. 학습 미션 데이터 (전체 1~8번: 16:9 이미지 적용)[cite: 2]
+       ======================================================== */
+    const allMissions = [
+      {
+        id: 1,
+        code: "1단계 B1-2",
+        category: "BASIC",
+        stepName: "1단계: AI 도구 학습 (Basic)",
+        title: "멀티모달 콘텐츠 제작",
+        imageSrc: "01Mul.png"
+      },
+      {
+        id: 2,
+        code: "1단계 B1-3",
+        category: "BASIC",
+        stepName: "1단계: AI 도구 학습 (Basic)",
+        title: "노코드 자동화기초: 워크플로우 설계",
+        imageSrc: "02Make.png"
+      },
+      {
+        id: 3,
+        code: "1단계 B2-1",
+        category: "BASIC",
+        stepName: "1단계: AI 도구 학습 (Basic)",
+        title: "AI 기반 UI/UX 디자인 시안 제작",
+        imageSrc: "03UIUX.png"
+      },
+      {
+        id: 4,
+        code: "2단계 A1-2",
+        category: "ADVANCED",
+        stepName: "2단계: AI 활용 학습 (Advanced)",
+        title: "API 활용 국내 여행지 추천 프로그램 개발",
+        imageSrc: "04Gaid.png"
+      },
+      {
+        id: 5,
+        code: "2단계 A1-3",
+        category: "ADVANCED",
+        stepName: "2단계: AI 활용 학습 (Advanced)",
+        title: "AI 웹 서비스 빌딩",
+        imageSrc: "05WebAi.png"
+      },
+      {
+        id: 6,
+        code: "2단계 A2-1",
+        category: "ADVANCED",
+        stepName: "2단계: AI 활용 학습 (Advanced)",
+        title: "브랜드 아이덴티티 생성기",
+        imageSrc: "06Brend.png"
+      },
+      {
+        id: 7,
+        code: "3단계 M1-1",
+        category: "MASTER",
+        stepName: "3단계: AI 응용 학습 (Master)",
+        title: "데이터 기반 트렌드 분석",
+        imageSrc: "07Data.png"
+      },
+      {
+        id: 8,
+        code: "3단계 M1-2",
+        category: "MASTER",
+        stepName: "3단계: AI 응용 학습 (Master)",
+        title: "나만의 AI 비서 구축",
+        imageSrc: "08MyAI.png"
+      }
+    ];
+
+    /* ========================================================
+       3. 탭 전환 및 미션 선택 로직
+       ======================================================== */
+    let currentStage = 'BASIC';
+    let filteredList = [];
+    let currentLocalIndex = 0;
+
+    function init() {
+      switchStage('BASIC', document.querySelector('.step-tab-btn.active'));
+      lucide.createIcons();
+    }
+
+    function switchStage(stage, btnElement) {
+      currentStage = stage;
+      
+      const buttons = document.querySelectorAll('.step-tab-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+
+      filteredList = allMissions.filter(m => m.category === stage);
+      currentLocalIndex = 0;
+
+      const titles = {
+        BASIC: '1단계: AI 도구 학습 목록',
+        ADVANCED: '2단계: AI 활용 학습 목록',
+        MASTER: '3단계: AI 응용 학습 목록'
+      };
+      document.getElementById('listCategoryTitle').innerText = titles[stage];
+
+      renderMissionList();
+      selectMission(0);
+    }
+
+    function renderMissionList() {
+      const container = document.getElementById('missionListContainer');
+      container.innerHTML = '';
+
+      filteredList.forEach((m, idx) => {
+        const item = document.createElement('button');
+        item.className = `mission-item ${idx === currentLocalIndex ? 'active' : ''}`;
+        item.onclick = () => selectMission(idx);
+
+        item.innerHTML = `
+          <div class="item-num">${m.id}</div>
+          <div class="item-content">
+            <span class="item-step-tag">${m.code}</span>
+            <span class="item-title">${m.title}</span>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.getElementById('counterText').innerText = `${filteredList.length}개 중 ${currentLocalIndex + 1}번째`;
+    }
+
+    function selectMission(index) {
+      if (index < 0 || index >= filteredList.length) return;
+      currentLocalIndex = index;
+      const data = filteredList[index];
+
+      document.getElementById('badgeNum').innerText = data.id;
+      document.getElementById('badgeTitle').innerText = data.title;
+
+      const visualWindow = document.getElementById('visualWindow');
+
+      // 1~8번 전 항목: 16:9 이미지 단독 표시
+      visualWindow.innerHTML = `
+        <div class="media-16-9-box">
+          <img src="${data.imageSrc}" alt="${data.title}">
+        </div>
+      `;
+
+      const items = document.querySelectorAll('.mission-item');
+      items.forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+
+      document.getElementById('counterText').innerText = `${filteredList.length}개 중 ${index + 1}번째`;
+    }
+
+    // 키보드 위/아래 방향키 이동 지원
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        if (currentLocalIndex < filteredList.length - 1) selectMission(currentLocalIndex + 1);
+      }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        if (currentLocalIndex > 0) selectMission(currentLocalIndex - 1);
+      }
+    });
+
+    window.onload = init;
+  </script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>
