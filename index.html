@@ -30,20 +30,20 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: clamp(14px, 2.8vh, 32px) 16px clamp(50px, 7vh, 76px);
+      justify-content: flex-start; /* 타이틀을 화면 상단으로 완전히 끌어올림 */
+      padding: clamp(20px, 3.6vh, 44px) 16px clamp(48px, 6.5vh, 70px);
       margin: 0;
       box-sizing: border-box;
     }
 
-    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 (상단 배치 및 부제목 공간 확보) */
+    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 (상단 밀착 배치) */
     .presentation-hero-header {
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       margin-top: 0;
-      margin-bottom: clamp(34px, 5.5vh, 60px); /* 차후 들어올 부제목을 위한 여유 공간 확보 */
+      margin-bottom: 0;
       z-index: 2;
       user-select: none;
       max-width: min(94vw, 1300px);
@@ -141,7 +141,7 @@
       max-height: calc((100vh - 190px) * 0.85);
       max-height: calc((100dvh - 190px) * 0.85);
       aspect-ratio: 16 / 9;
-      margin: 0 auto; /* 수평/수직 완전한 화면 정중앙 정렬 */
+      margin: auto auto; /* 상단 타이틀과 하단 독 사이의 남은 공간 중앙에 비디오 배치 */
       background: rgba(13, 18, 30, 0.92);
       border: 1.5px solid rgba(56, 189, 248, 0.38);
       border-radius: 20px;
@@ -192,11 +192,11 @@
     /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) */
     @media (max-width: 860px) and (orientation: portrait) {
       .presentation-stage {
-        padding: 0 10px;
+        padding: clamp(20px, 3.5vh, 36px) 10px clamp(48px, 6.5vh, 68px);
       }
       .presentation-hero-header {
         margin-top: 0;
-        margin-bottom: clamp(32px, 6.5vh, 60px); /* 모바일 세로 화면에서도 부제목 공간 충분히 확보 */
+        margin-bottom: 0;
       }
       .hero-badge {
         padding: 3px 10px;
@@ -217,7 +217,7 @@
         width: 85%;
         max-width: min(calc(96vw * 0.85), calc((100dvh - 200px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 200px) * 0.85);
-        margin: 0 auto;
+        margin: auto auto;
         border-radius: 14px;
       }
     }
@@ -225,11 +225,11 @@
     /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) */
     @media (max-height: 540px) and (orientation: landscape) {
       .presentation-stage {
-        padding: 0 8px;
+        padding: 6px 8px 36px;
       }
       .presentation-hero-header {
         margin-top: 0;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
       }
       .hero-badge {
         display: none; /* 가로 모드 시 세로 공간 절약을 위해 배지 숨김 */
@@ -245,7 +245,7 @@
         width: 85%;
         max-width: min(calc((100vw - 20px) * 0.85), calc((100dvh - 76px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 76px) * 0.85);
-        margin: 0 auto; /* 가로 화면 완전 정중앙 정렬 */
+        margin: auto auto;
         border-radius: 12px;
       }
       /* 모바일 가로 모드 시 하단 6개 버튼 독을 슬림 모드로 전환하여 화면 가림 방지 */
