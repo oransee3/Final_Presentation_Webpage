@@ -420,10 +420,10 @@
       text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
-    /* 네온 사이버 그라디언트 메인 타이틀 (2줄 강제 및 완벽한 중앙 정렬) */
+    /* 네온 사이버 그라디언트 메인 타이틀 (데스크톱 1열 가로 나열 & 사이 간격 확보) */
     .hero-main-title {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-      font-size: clamp(1.35rem, 2.4vw, 2.25rem);
+      font-size: clamp(1.4rem, 2.05vw, 2.35rem);
       font-weight: 800;
       line-height: 1.35;
       text-align: center;
@@ -435,20 +435,27 @@
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.42));
       position: relative;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(14px, 1.5vw, 24px); /* 데스크톱 1열 배치 시 두 문구 사이 간격을 조금 더 벌림 */
+      white-space: nowrap;
     }
 
     .title-line {
-      display: block;
-      width: 100%;
+      display: inline-block;
+      width: auto;
       text-align: center;
-      margin: 0 auto;
+      margin: 0;
     }
 
-    /* 미래지향적 네온 오로라 액센트 라인 */
+    /* 미래지향적 네온 오로라 액센트 라인 (1열 타이틀 너비에 맞춘 확장) */
     .title-accent-glow {
-      width: clamp(160px, 24vw, 320px);
+      width: clamp(280px, 35vw, 560px);
       height: 2px;
-      margin: 10px auto 0;
+      margin: 12px auto 0;
       background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent);
       border-radius: 999px;
       box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
@@ -525,8 +532,18 @@
         font-size: 10px;
       }
       .hero-main-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        white-space: normal;
         font-size: clamp(1.18rem, 5vw, 1.5rem);
         line-height: 1.35;
+      }
+      .title-line {
+        display: block;
+        width: 100%;
+        margin: 0 auto;
       }
       .title-accent-glow {
         width: 140px;
@@ -561,8 +578,17 @@
         display: none; /* 가로 모드 시 세로 공간 절약을 위해 배지 숨김 */
       }
       .hero-main-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        white-space: normal;
         font-size: clamp(0.92rem, 2.4vw, 1.15rem);
         line-height: 1.2;
+      }
+      .title-line {
+        display: block;
+        width: 100%;
       }
       .title-accent-glow {
         display: none;
