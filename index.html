@@ -101,21 +101,22 @@
       width: 100%;
       line-height: 1.3;
       text-align: center;
+      transform-origin: center center;
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-      will-change: opacity, transform;
+      will-change: opacity, transform, filter;
     }
 
-    /* 첫 번째 윗줄: 단 몇 줄의 프롬프트로 (1.5초 페이드 인) */
+    /* 첫 번째 윗줄: 200%에서 100%로 1.5초 줌인 & 페이드 인 */
     .subtitle-line-1 {
       font-size: clamp(1.15rem, 1.7vw, 1.55rem);
       font-weight: 600;
       letter-spacing: -0.02em;
       color: #a5f3fc;
       text-shadow: 0 0 16px rgba(34, 211, 238, 0.45);
-      animation: subtitleFadeInLine1 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+      animation: subtitleZoomInLine1 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
-    /* 두 번째 아랫줄: 음원(mp3) · 음악동영상 · 유튜브 업로드까지 (다음 1.0초 페이드 인) */
+    /* 두 번째 아랫줄: 200%에서 100%로 1.0초 줌인 & 페이드 인 */
     .subtitle-line-2 {
       font-size: clamp(1.4rem, 2.2vw, 2.05rem);
       font-weight: 800;
@@ -124,7 +125,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
-      animation: subtitleFadeInLine2 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+      animation: subtitleZoomInLine2 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
     /* 중간점(·) 스타일 */
@@ -144,51 +145,61 @@
       opacity: 0.9;
     }
 
-    /* 부제목 첫 번째 줄: 0~1.5s(1.5초) 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
-    @keyframes subtitleFadeInLine1 {
+    /* 부제목 첫 번째 줄: 큰 상태(200%)에서 원래상태(100%)로 1.5초 줌인 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
+    @keyframes subtitleZoomInLine1 {
       0% {
         opacity: 0;
-        transform: translateY(-6px);
+        transform: scale(2.0);
+        filter: blur(5px);
       }
-      18.75% { /* 1.5s / 8.0s: 1.5초 페이드 인 완료 */
+      18.75% { /* 1.5s / 8.0s: 200% -> 100% 줌인 완료 */
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1.0);
+        filter: blur(0px);
       }
-      68.75% { /* 5.5s / 8.0s: 2.5s~5.5s(정확히 3.0초) 유지 */
+      68.75% { /* 5.5s / 8.0s: 100% 상태에서 3.0초간 유지 */
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1.0);
+        filter: blur(0px);
       }
-      87.5% { /* 7.0s / 8.0s: 5.5s~7.0s(1.5초) 동시 페이드 아웃 완료 */
+      87.5% { /* 7.0s / 8.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
-        transform: translateY(-4px);
+        transform: scale(0.96);
+        filter: blur(2px);
       }
       100% {
         opacity: 0;
-        transform: translateY(-4px);
+        transform: scale(0.96);
+        filter: blur(2px);
       }
     }
 
-    /* 부제목 두 번째 줄: 1.5s 대기 -> 1.5~2.5s(1.0초) 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
-    @keyframes subtitleFadeInLine2 {
-      0%, 18.75% { /* 0s ~ 1.5s: 첫 번째 줄 페이드 인 동안 대기 */
+    /* 부제목 두 번째 줄: 1.5s 대기 -> 큰 상태(200%)에서 원래상태(100%)로 1.0초 줌인 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
+    @keyframes subtitleZoomInLine2 {
+      0%, 18.75% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
         opacity: 0;
-        transform: translateY(6px);
+        transform: scale(2.0);
+        filter: blur(5px);
       }
-      31.25% { /* 2.5s / 8.0s: 1.5s~2.5s(1.0초) 페이드 인 완료 */
+      31.25% { /* 2.5s / 8.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1.0);
+        filter: blur(0px);
       }
-      68.75% { /* 5.5s / 8.0s: 2.5s~5.5s(정확히 3.0초) 유지 */
+      68.75% { /* 5.5s / 8.0s: 100% 상태에서 3.0초간 유지 */
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1.0);
+        filter: blur(0px);
       }
-      87.5% { /* 7.0s / 8.0s: 5.5s~7.0s(1.5초) 동시 페이드 아웃 완료 */
+      87.5% { /* 7.0s / 8.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
-        transform: translateY(4px);
+        transform: scale(0.96);
+        filter: blur(2px);
       }
       100% {
         opacity: 0;
-        transform: translateY(4px);
+        transform: scale(0.96);
+        filter: blur(2px);
       }
     }
 
