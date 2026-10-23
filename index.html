@@ -371,18 +371,30 @@
       }
     }
 
+    /* 동영상 하단 상시 고정 네온 오로라 색상 라인 (페이드 인/아웃 없는 상시 고정) */
+    .video-accent-glow {
+      width: clamp(260px, 32vw, 520px);
+      height: 2px;
+      margin: 28px auto 0;
+      background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent);
+      border-radius: 999px;
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
+      z-index: 2;
+      flex-shrink: 0;
+    }
+
     /* 2. 동영상과 하단 6개 버튼 독 사이: 팀명과 멘토명이 들어갈 전용 공간 영역 */
     .presentation-meta-zone {
       width: 100%;
       max-width: min(94vw, 1300px);
       min-height: 70px;
-      margin: 30px 0 20px;
+      margin: 22px 0 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      gap: 6px;
+      gap: 8px;
       z-index: 2;
       box-sizing: border-box;
       pointer-events: none;
@@ -688,6 +700,10 @@
         width: 140px;
         margin: 0 auto 16px;
       }
+      .video-accent-glow {
+        width: 140px;
+        margin: 14px auto 0;
+      }
       .presentation-meta-zone {
         min-height: clamp(38px, 6.5vh, 70px);
         margin: 16px 0 10px;
@@ -741,6 +757,9 @@
         display: none;
       }
       .subtitle-accent-glow {
+        display: none;
+      }
+      .video-accent-glow {
         display: none;
       }
       .presentation-subtitle-zone {
@@ -872,6 +891,9 @@
       </div>
 
     </div>
+
+    <!-- 동영상 하단 상시 고정 색상 라인 (페이드 인/아웃 없는 상시 고정) -->
+    <div class="video-accent-glow"></div>
 
     <!-- 2. 동영상과 하단 6개 버튼 독 사이: 팀명과 멘토명이 들어갈 전용 공간 영역 -->
     <div class="presentation-meta-zone" id="presentationMetaZone">
