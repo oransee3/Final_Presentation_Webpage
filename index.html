@@ -67,14 +67,14 @@
       animation: fadeInHeader 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* 1. 제목과 동영상 사이: 부제목 전용 공간 및 중앙 배열 스타일 */
+    /* 1. 제목과 동영상 사이: 부제목 전용 공간 (1·2세트 순차 교대 안착) */
     .presentation-subtitle-zone {
       width: 100%;
       max-width: min(94vw, 1300px);
       min-height: 140px;
       margin: 15px 0 35px;
+      position: relative;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
@@ -83,15 +83,19 @@
       pointer-events: none;
     }
 
-    /* 부제목 컨텐츠 래퍼 (중앙 배열 및 사이간격 축소) */
-    .subtitle-content {
+    /* 부제목 각 세트 그룹 (동일 위치에서 절대 배치로 매끄러운 전환) */
+    .subtitle-group {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      gap: 3px; /* 부제목 윗줄과 아랫줄 사이 간격을 긴밀하게 좁힘 */
-      width: 100%;
+      gap: 3px;
       margin: 0 auto;
     }
 
@@ -106,17 +110,16 @@
       will-change: opacity, transform, filter;
     }
 
-    /* 첫 번째 윗줄: 200%에서 100%로 1.5초 줌인 & 페이드 인 (총 10초 주기, 5초 유지) */
+    /* 윗줄 공통 스타일 */
     .subtitle-line-1 {
       font-size: clamp(1.15rem, 1.7vw, 1.55rem);
       font-weight: 600;
       letter-spacing: -0.02em;
       color: #a5f3fc;
       text-shadow: 0 0 16px rgba(34, 211, 238, 0.45);
-      animation: subtitleZoomInLine1 10s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
-    /* 두 번째 아랫줄: 200%에서 100%로 1.0초 줌인 & 페이드 인 (총 10초 주기, 5초 유지) */
+    /* 아랫줄 공통 스타일 */
     .subtitle-line-2 {
       font-size: clamp(1.4rem, 2.2vw, 2.05rem);
       font-weight: 800;
@@ -125,7 +128,22 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
-      animation: subtitleZoomInLine2 10s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    /* [1번째 세트 애니메이션 바인딩] */
+    .subtitle-group-1 .subtitle-line-1 {
+      animation: subSet1ZoomInLine1 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .subtitle-group-1 .subtitle-line-2 {
+      animation: subSet1ZoomInLine2 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    /* [2번째 세트 애니메이션 바인딩] */
+    .subtitle-group-2 .subtitle-line-1 {
+      animation: subSet2ZoomInLine1 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .subtitle-group-2 .subtitle-line-2 {
+      animation: subSet2ZoomInLine2 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
     /* 중간점(·) 스타일 (글자 아래 불릿 점 충돌 완전 제거 및 순수 가운뎃점 네온 스타일) */
@@ -150,24 +168,27 @@
       opacity: 0.9;
     }
 
-    /* 부제목 첫 번째 줄: 큰 상태(200%)에서 원래상태(100%)로 1.5초 줌인 페이드인 -> 7.5s까지(5초) 유지 -> 9.0s까지(1.5초) 동시 페이드아웃 */
-    @keyframes subtitleZoomInLine1 {
+    /* ========================================================
+       1번째 세트 키프레임: 0s~10s 구간 동작 (총 20초 주기)
+       0s~1.5s 윗줄 줌인 -> 1.5s~2.5s 아랫줄 줌인 -> 7.5s까지(5초간) 100% 유지 -> 9.0s까지(1.5초간) 동시 페이드아웃
+       ======================================================== */
+    @keyframes subSet1ZoomInLine1 {
       0% {
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      15% { /* 1.5s / 10.0s: 200% -> 100% 줌인 완료 */
+      7.5% { /* 1.5s / 20.0s: 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      75% { /* 7.5s / 10.0s: 100% 상태에서 5.0초간 유지 */
+      37.5% { /* 7.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      90% { /* 9.0s / 10.0s: 1.5초 동안 동시 페이드 아웃 */
+      45% { /* 9.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -179,24 +200,83 @@
       }
     }
 
-    /* 부제목 두 번째 줄: 1.5s 대기 -> 큰 상태(200%)에서 원래상태(100%)로 1.0초 줌인 페이드인 -> 7.5s까지(5초) 유지 -> 9.0s까지(1.5초) 동시 페이드아웃 */
-    @keyframes subtitleZoomInLine2 {
-      0%, 15% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
+    @keyframes subSet1ZoomInLine2 {
+      0%, 7.5% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      25% { /* 2.5s / 10.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
+      12.5% { /* 2.5s / 20.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      75% { /* 7.5s / 10.0s: 100% 상태에서 5.0초간 유지 */
+      37.5% { /* 7.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      90% { /* 9.0s / 10.0s: 1.5초 동안 동시 페이드 아웃 */
+      45% { /* 9.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+    }
+
+    /* ========================================================
+       2번째 세트 키프레임: 10s~20s 구간 동작 (총 20초 주기)
+       10s~11.5s 윗줄 줌인 -> 11.5s~12.5s 아랫줄 줌인 -> 17.5s까지(5초간) 100% 유지 -> 19.0s까지(1.5초간) 동시 페이드아웃
+       ======================================================== */
+    @keyframes subSet2ZoomInLine1 {
+      0%, 50% { /* 0s ~ 10.0s: 1번째 세트 진행 동안 대기 */
+        opacity: 0;
+        transform: scale(2.0);
+        filter: blur(5px);
+      }
+      57.5% { /* 11.5s / 20.0s: 10.0s~11.5s(1.5초간) 200% -> 100% 줌인 완료 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      87.5% { /* 17.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      95% { /* 19.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+    }
+
+    @keyframes subSet2ZoomInLine2 {
+      0%, 57.5% { /* 0s ~ 11.5s: 2번째 세트 윗줄 완료까지 대기 */
+        opacity: 0;
+        transform: scale(2.0);
+        filter: blur(5px);
+      }
+      62.5% { /* 12.5s / 20.0s: 11.5s~12.5s(1.0초간) 200% -> 100% 줌인 완료 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      87.5% { /* 17.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      95% { /* 19.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -476,14 +556,25 @@
       <div class="title-accent-glow"></div>
     </header>
 
-    <!-- 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 -->
+    <!-- 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 (1세트 & 2세트 순차 교대) -->
     <div class="presentation-subtitle-zone" id="presentationSubtitleZone">
-      <div class="subtitle-content">
+      
+      <!-- 1번째 부제목 세트 -->
+      <div class="subtitle-group subtitle-group-1">
         <p class="subtitle-line subtitle-line-1">단 몇 줄의 프롬프트로</p>
         <p class="subtitle-line subtitle-line-2">
           음원<span class="sub-paren">(mp3)</span><span class="subtitle-mid-dot">·</span>음악동영상<span class="subtitle-mid-dot">·</span>유튜브 업로드까지
         </p>
       </div>
+
+      <!-- 2번째 부제목 세트 -->
+      <div class="subtitle-group subtitle-group-2">
+        <p class="subtitle-line subtitle-line-1">별도 설치 없이 즉시 실행되는</p>
+        <p class="subtitle-line subtitle-line-2">
+          단 하나의 통합 실행 시스템
+        </p>
+      </div>
+
     </div>
 
     <div class="showcase-window-card">
