@@ -454,6 +454,39 @@
       line-height: 1;
     }
 
+    /* 두 번째 줄: 멘토 문구 (첫 번째 줄 문구보다 조금 작은 크기 & 중앙 정렬) */
+    .meta-line-mentor {
+      font-size: clamp(0.98rem, 1.22vw, 1.32rem); /* 첫 번째 줄보다 약 15% 축소된 최적 위계 */
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #cbd5e1;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .meta-mentor-badge {
+      color: #38bdf8;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      margin-right: 6px;
+    }
+
+    .meta-mentor-colon {
+      color: #7dd3fc;
+      margin-right: 12px;
+      font-weight: 600;
+    }
+
+    .meta-mentor-name {
+      color: #e2e8f0;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
     @keyframes fadeInHeader {
       from {
         opacity: 0;
@@ -657,6 +690,17 @@
       }
       .presentation-meta-zone {
         min-height: clamp(38px, 6.5vh, 70px);
+        margin: 16px 0 10px;
+        gap: 5px;
+      }
+      .meta-line-team {
+        font-size: clamp(0.95rem, 3.8vw, 1.25rem);
+      }
+      .meta-line-mentor {
+        font-size: clamp(0.82rem, 3.2vw, 1.05rem);
+      }
+      .meta-mid-dot {
+        margin: 0 6px;
       }
       .showcase-window-card {
         width: 75%;
@@ -704,6 +748,17 @@
       }
       .presentation-meta-zone {
         min-height: 18px;
+        margin: 6px 0 4px;
+        gap: 3px;
+      }
+      .meta-line-team {
+        font-size: clamp(0.72rem, 1.8vw, 0.92rem);
+      }
+      .meta-line-mentor {
+        font-size: clamp(0.65rem, 1.5vw, 0.82rem);
+      }
+      .meta-mid-dot {
+        margin: 0 4px;
       }
       .showcase-window-card {
         width: 75%;
@@ -826,6 +881,11 @@
         <span class="meta-members">
           김상훈<span class="meta-mid-dot">·</span>이동희<span class="meta-mid-dot">·</span>천윤호<span class="meta-mid-dot">·</span>신재풍
         </span>
+      </p>
+      <p class="meta-line meta-line-mentor">
+        <span class="meta-mentor-badge">멘토</span>
+        <span class="meta-mentor-colon">:</span>
+        <span class="meta-mentor-name">전현식 퍼실리테이터</span>
       </p>
     </div>
   </main>
