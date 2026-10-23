@@ -70,12 +70,12 @@
       animation: fadeInHeader 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* 1. 제목과 동영상 사이: 부제목 전용 공간 (1·2·3세트 순차 교대 안착, 영역 콤팩트 최적화) */
+    /* 1. 제목과 동영상 사이: 부제목 전용 공간 (1·2·3세트 순차 교대 안착, 영역 슬림 최적화) */
     .presentation-subtitle-zone {
       width: 100%;
       max-width: min(94vw, 1300px);
-      min-height: clamp(82px, 9vh, 98px); /* 140px -> 약 90px로 콤팩트하게 좁힘 */
-      margin: 10px 0 8px; /* 상하 여백 정돈 */
+      min-height: clamp(66px, 7.2vh, 76px); /* 약 70px 수준으로 슬림하게 좁힘 */
+      margin: 5px 0 4px; /* 상하 여백 정밀 축소 */
       position: relative;
       display: flex;
       align-items: center;
@@ -86,11 +86,11 @@
       pointer-events: none;
     }
 
-    /* 부제목 하단 고정 네온 오로라 색상 라인 (페이드 인/아웃 없이 상시 고정, 좁아진 부제목에 맞춰 간격 축소) */
+    /* 부제목 하단 고정 네온 오로라 색상 라인 (페이드 인/아웃 없이 상시 고정, 슬림화된 부제목에 맞춰 간격 정밀 축소) */
     .subtitle-accent-glow {
       width: clamp(260px, 32vw, 520px);
       height: 2px;
-      margin: 0 auto 22px; /* 35px -> 22px로 비례 축소 */
+      margin: 0 auto 14px; /* 22px -> 14px로 간격 정밀 축소 */
       background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent);
       border-radius: 999px;
       box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
@@ -706,12 +706,12 @@
         margin-top: 8px;
       }
       .presentation-subtitle-zone {
-        min-height: clamp(38px, 6.5vh, 64px);
-        margin: 8px 0 6px;
+        min-height: clamp(34px, 5.5vh, 52px);
+        margin: 4px 0 3px;
       }
       .subtitle-accent-glow {
         width: 140px;
-        margin: 0 auto 12px;
+        margin: 0 auto 8px;
       }
       .video-accent-glow {
         width: 140px;
