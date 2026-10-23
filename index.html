@@ -671,6 +671,100 @@
       display: none !important;
     }
 
+    /* ========================================================
+       브라우저 상·하·좌·우 사이버네틱 문양 데코레이션 스타일
+       (우측 상단 & 좌측 하단: PCB 회로 트레이스 / 좌측 상단 & 우측 하단: 도트 매트릭스)
+       ======================================================== */
+    .cyber-frame-decorations {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    /* 도트 매트릭스 그리드 공통 */
+    .decor-dot-grid {
+      position: fixed;
+      background-image: radial-gradient(circle, rgba(56, 189, 248, 0.42) 1.5px, transparent 2px);
+      background-size: 14px 14px;
+      pointer-events: none;
+      opacity: 0.85;
+      z-index: 1;
+    }
+
+    /* 좌측 상단 도트 매트릭스 */
+    .decor-dot-grid-tl {
+      top: 0;
+      left: 0;
+      width: clamp(220px, 22vw, 380px);
+      height: clamp(180px, 22vh, 320px);
+      mask-image: radial-gradient(ellipse at 0% 0%, black 28%, transparent 78%);
+      -webkit-mask-image: radial-gradient(ellipse at 0% 0%, black 28%, transparent 78%);
+    }
+
+    /* 우측 하단 도트 매트릭스 */
+    .decor-dot-grid-br {
+      bottom: 0;
+      right: 0;
+      width: clamp(220px, 22vw, 380px);
+      height: clamp(180px, 22vh, 320px);
+      mask-image: radial-gradient(ellipse at 100% 100%, black 28%, transparent 78%);
+      -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 28%, transparent 78%);
+    }
+
+    /* 네온 백라이트 글로우 */
+    .decor-glow-tr {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: clamp(280px, 26vw, 450px);
+      height: clamp(220px, 22vh, 360px);
+      background: radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.22) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .decor-glow-bl {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: clamp(280px, 26vw, 450px);
+      height: clamp(220px, 22vh, 360px);
+      background: radial-gradient(circle at 15% 85%, rgba(56, 189, 248, 0.22) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 사이버네틱 PCB 회로 SVG */
+    .circuit-svg {
+      position: fixed;
+      pointer-events: none;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.65));
+      opacity: 0.9;
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    /* 우측 상단 회로 */
+    .circuit-top-right {
+      top: 15px;
+      right: 15px;
+      width: clamp(240px, 22vw, 380px);
+      height: auto;
+    }
+
+    /* 좌측 하단 회로 */
+    .circuit-bottom-left {
+      bottom: 15px;
+      left: 15px;
+      width: clamp(240px, 22vw, 380px);
+      height: auto;
+    }
+
     /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) */
     @media (max-width: 860px) and (orientation: portrait) {
       .presentation-stage {
@@ -743,6 +837,23 @@
         margin: auto auto;
         border-radius: 14px;
       }
+      .circuit-top-right {
+        top: 5px;
+        right: 5px;
+        width: clamp(140px, 32vw, 190px);
+        opacity: 0.65;
+      }
+      .circuit-bottom-left {
+        bottom: 5px;
+        left: 5px;
+        width: clamp(140px, 32vw, 190px);
+        opacity: 0.65;
+      }
+      .decor-dot-grid-tl, .decor-dot-grid-br {
+        width: clamp(120px, 28vw, 160px);
+        height: clamp(100px, 20vh, 150px);
+        opacity: 0.6;
+      }
     }
 
     /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) */
@@ -807,6 +918,23 @@
         margin: auto auto;
         border-radius: 12px;
       }
+      .circuit-top-right {
+        top: 2px;
+        right: 2px;
+        width: 140px;
+        opacity: 0.45;
+      }
+      .circuit-bottom-left {
+        bottom: 2px;
+        left: 2px;
+        width: 140px;
+        opacity: 0.45;
+      }
+      .decor-dot-grid-tl, .decor-dot-grid-br {
+        width: 120px;
+        height: 90px;
+        opacity: 0.45;
+      }
       /* 모바일 가로 모드 시 하단 6개 버튼 독을 슬림 모드로 전환하여 화면 가림 방지 */
       .fp-mobile-dock {
         bottom: 5px !important;
@@ -830,6 +958,73 @@
   <!-- 실시간 스타필드 파티클 캔버스 & 사이버네틱 그리드 배경 오버레이 -->
   <canvas id="hubBgCanvas"></canvas>
   <div class="cyber-grid-overlay"></div>
+
+  <!-- 브라우저 상·하·좌·우 사이버네틱 문양 데코레이션 (PCB 회로 & 도트 매트릭스) -->
+  <div class="cyber-frame-decorations" aria-hidden="true">
+    <!-- 좌측 상단: 도트 매트릭스 그리드 -->
+    <div class="decor-dot-grid decor-dot-grid-tl"></div>
+    
+    <!-- 우측 상단: 백라이트 글로우 & PCB 서킷 트레이스 회로 문양 -->
+    <div class="decor-glow-tr"></div>
+    <svg class="circuit-svg circuit-top-right" viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="circuitGlowTR" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <!-- 회로 라인들 (평행선과 45도 꺾임) -->
+      <path d="M 320 30 L 190 30 L 140 80 L 70 80" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowTR)" />
+      <circle cx="65" cy="80" r="4.5" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 320 55 L 205 55 L 165 95 L 110 95" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowTR)" />
+      <circle cx="105" cy="95" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 320 80 L 220 80 L 190 110 L 150 110" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowTR)" />
+      <circle cx="145" cy="110" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 320 105 L 235 105 L 210 130 L 190 130" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowTR)" />
+      <circle cx="185" cy="130" r="3.5" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 270 0 L 270 20 L 250 40 L 250 65" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowTR)" />
+      <circle cx="250" cy="70" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <!-- 인디케이터 점 3개 (•••) -->
+      <circle cx="270" cy="145" r="3.5" fill="#38bdf8" filter="url(#circuitGlowTR)" />
+      <circle cx="285" cy="145" r="3.5" fill="#38bdf8" filter="url(#circuitGlowTR)" />
+      <circle cx="300" cy="145" r="3.5" fill="#38bdf8" filter="url(#circuitGlowTR)" />
+    </svg>
+
+    <!-- 좌측 하단: 백라이트 글로우 & PCB 서킷 트레이스 회로 문양 -->
+    <div class="decor-glow-bl"></div>
+    <svg class="circuit-svg circuit-bottom-left" viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="circuitGlowBL" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <!-- 회로 라인들 (평행선과 45도 꺾임) -->
+      <path d="M 0 210 L 130 210 L 180 160 L 250 160" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowBL)" />
+      <circle cx="255" cy="160" r="4.5" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 0 185 L 115 185 L 155 145 L 210 145" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowBL)" />
+      <circle cx="215" cy="145" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 0 160 L 100 160 L 130 130 L 170 130" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowBL)" />
+      <circle cx="175" cy="130" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 0 135 L 85 135 L 110 110 L 130 110" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowBL)" />
+      <circle cx="135" cy="110" r="3.5" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 50 240 L 50 220 L 70 200 L 70 175" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" filter="url(#circuitGlowBL)" />
+      <circle cx="70" cy="170" r="4" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+      <!-- 인디케이터 점 3개 (•••) -->
+      <circle cx="20" cy="95" r="3.5" fill="#38bdf8" filter="url(#circuitGlowBL)" />
+      <circle cx="35" cy="95" r="3.5" fill="#38bdf8" filter="url(#circuitGlowBL)" />
+      <circle cx="50" cy="95" r="3.5" fill="#38bdf8" filter="url(#circuitGlowBL)" />
+    </svg>
+
+    <!-- 우측 하단: 도트 매트릭스 그리드 -->
+    <div class="decor-dot-grid decor-dot-grid-br"></div>
+  </div>
 
   <!-- 키보드 단축키 이동 토스트 알림 -->
   <div id="shortcutToast" class="shortcut-toast" role="status" aria-live="polite"></div>
