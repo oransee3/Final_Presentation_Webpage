@@ -9,59 +9,74 @@
     /* 메인페이지 16:9 인터페이스 쇼케이스 스테이지 스타일 */
     html, body {
       width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto; /* 발표용 PC/빔프로젝터 대화면 상·하 스크롤바로 위·아래 자유 이동 */
       margin: 0;
       padding: 0;
       background-color: #030712;
       color: #f1f5f9;
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
       user-select: none;
+      scroll-behavior: smooth;
     }
 
-    /* 메인페이지 뷰포트 쇼케이스 스테이지: 첨부 이미지 기준 4단 수직 공간 분할 */
+    /* 사이버네틱 프리미엄 슬림 스크롤바 디자인 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(3, 7, 18, 0.95);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.45), rgba(168, 85, 247, 0.45));
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.8), rgba(168, 85, 247, 0.8));
+    }
+
+    /* 메인페이지 뷰포트 쇼케이스 스테이지: 발표용 데스크톱/빔프로젝터 4단 수직 전용 배치 */
     .presentation-stage {
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
+      width: 100%;
+      min-height: 100vh;
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between; /* 상단 타이틀부터 하단 메타 영역까지 균형감 있게 배치 */
-      padding: clamp(16px, 3vh, 32px) 16px clamp(64px, 8.5vh, 84px); /* 하단 6개 독 버튼과의 안전 여백 확보 */
+      justify-content: flex-start;
+      padding: 45px 24px 140px; /* 상단 여백 및 하단 6개 고정 독 버튼과의 넉넉한 안전 여백 */
       margin: 0;
       box-sizing: border-box;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 (상단 밀착 배치) */
+    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 */
     .presentation-hero-header {
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       margin-top: 0;
-      margin-bottom: 0;
+      margin-bottom: 10px;
       z-index: 2;
       user-select: none;
       max-width: min(94vw, 1300px);
       animation: fadeInHeader 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 */
+    /* 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 (간격 대폭 확장) */
     .presentation-subtitle-zone {
-      flex: 1 1 auto;
       width: 100%;
-      max-width: min(94vw, 1200px);
-      min-height: clamp(40px, 7vh, 80px);
+      max-width: min(94vw, 1300px);
+      min-height: 200px; /* 제목과 동영상 사이를 200px로 많이 띄워 부제목 배치 공간 확보 */
+      margin: 20px 0 40px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      margin: 0;
       z-index: 2;
       box-sizing: border-box;
       pointer-events: none;
@@ -69,15 +84,14 @@
 
     /* 2. 동영상과 하단 6개 버튼 독 사이: 팀명과 멘토명이 들어갈 전용 공간 영역 */
     .presentation-meta-zone {
-      flex: 1 1 auto;
       width: 100%;
-      max-width: min(94vw, 1200px);
-      min-height: clamp(40px, 7vh, 80px);
+      max-width: min(94vw, 1300px);
+      min-height: 80px;
+      margin: 40px 0 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      margin: 0;
       z-index: 2;
       box-sizing: border-box;
       pointer-events: none;
@@ -166,16 +180,13 @@
       box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
     }
 
-    /* 16:9 프리미엄 쇼케이스 프레임 (화면 균형 최적화 - 16:9 비율 유지 10% 축소: 75%) */
+    /* 16:9 프리미엄 쇼케이스 프레임 (데스크톱 16:9 비율 유지 75% 스케일) */
     .showcase-window-card {
       width: 75%;
-      max-width: min(calc((100vw - 24px) * 0.75), calc((100vh - 270px) * 16 / 9 * 0.75));
-      max-width: min(calc((100vw - 24px) * 0.75), calc((100dvh - 270px) * 16 / 9 * 0.75));
-      max-height: calc((100vh - 270px) * 0.75);
-      max-height: calc((100dvh - 270px) * 0.75);
+      max-width: 1350px;
       aspect-ratio: 16 / 9;
       flex-shrink: 0;
-      margin: auto auto; /* 상단 타이틀과 하단 독 사이의 남은 공간 중앙에 비디오 배치 */
+      margin: 0 auto;
       background: rgba(13, 18, 30, 0.92);
       border: 1.5px solid rgba(56, 189, 248, 0.38);
       border-radius: 20px;
