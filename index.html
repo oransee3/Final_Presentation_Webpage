@@ -20,7 +20,7 @@
       user-select: none;
     }
 
-    /* 뷰포트 정중앙 16:9 쇼케이스 스테이지 */
+    /* 뷰포트 쇼케이스 스테이지 */
     .presentation-stage {
       width: 100vw;
       height: 100vh;
@@ -31,18 +31,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 0 16px;
+      padding: clamp(14px, 2.8vh, 32px) 16px clamp(50px, 7vh, 76px);
       margin: 0;
       box-sizing: border-box;
     }
 
-    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 */
+    /* 미래지향적 프레젠테이션 히어로 타이틀 헤더 (상단 배치 및 부제목 공간 확보) */
     .presentation-hero-header {
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      margin-bottom: 20px;
+      margin-top: 0;
+      margin-bottom: clamp(34px, 5.5vh, 60px); /* 차후 들어올 부제목을 위한 여유 공간 확보 */
       z-index: 2;
       user-select: none;
       max-width: min(94vw, 1300px);
@@ -135,10 +136,10 @@
     /* 16:9 프리미엄 쇼케이스 프레임 (화면 균형 최적화) */
     .showcase-window-card {
       width: 85%;
-      max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 160px) * 16 / 9 * 0.85));
-      max-width: min(calc((100vw - 24px) * 0.85), calc((100dvh - 160px) * 16 / 9 * 0.85));
-      max-height: calc((100vh - 160px) * 0.85);
-      max-height: calc((100dvh - 160px) * 0.85);
+      max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 190px) * 16 / 9 * 0.85));
+      max-width: min(calc((100vw - 24px) * 0.85), calc((100dvh - 190px) * 16 / 9 * 0.85));
+      max-height: calc((100vh - 190px) * 0.85);
+      max-height: calc((100dvh - 190px) * 0.85);
       aspect-ratio: 16 / 9;
       margin: 0 auto; /* 수평/수직 완전한 화면 정중앙 정렬 */
       background: rgba(13, 18, 30, 0.92);
@@ -188,13 +189,14 @@
       display: none !important;
     }
 
-    /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) 화면 정중앙 정렬 */
+    /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) */
     @media (max-width: 860px) and (orientation: portrait) {
       .presentation-stage {
         padding: 0 10px;
       }
       .presentation-hero-header {
-        margin-bottom: 14px;
+        margin-top: 0;
+        margin-bottom: clamp(32px, 6.5vh, 60px); /* 모바일 세로 화면에서도 부제목 공간 충분히 확보 */
       }
       .hero-badge {
         padding: 3px 10px;
@@ -213,20 +215,21 @@
       }
       .showcase-window-card {
         width: 85%;
-        max-width: min(calc(96vw * 0.85), calc((100dvh - 160px) * 16 / 9 * 0.85));
-        max-height: calc((100dvh - 160px) * 0.85);
-        margin: 0 auto; /* 세로 화면 완전 정중앙 정렬 */
+        max-width: min(calc(96vw * 0.85), calc((100dvh - 200px) * 16 / 9 * 0.85));
+        max-height: calc((100dvh - 200px) * 0.85);
+        margin: 0 auto;
         border-radius: 14px;
       }
     }
 
-    /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) 화면 정중앙 정렬 */
+    /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) */
     @media (max-height: 540px) and (orientation: landscape) {
       .presentation-stage {
         padding: 0 8px;
       }
       .presentation-hero-header {
-        margin-bottom: 6px;
+        margin-top: 0;
+        margin-bottom: 8px;
       }
       .hero-badge {
         display: none; /* 가로 모드 시 세로 공간 절약을 위해 배지 숨김 */
