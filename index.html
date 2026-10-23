@@ -35,7 +35,7 @@
       box-sizing: border-box;
     }
 
-    /* 16:9 프리미엄 쇼케이스 프레임 (기존 대비 15% 축소: 85% 크기 최적화) */
+    /* 16:9 프리미엄 쇼케이스 프레임 (기존 대비 15% 축소 및 하단 독 쪽으로 50% 하향 배치) */
     .showcase-window-card {
       width: 85%;
       max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 110px) * 16 / 9 * 0.85));
@@ -43,6 +43,7 @@
       max-height: calc((100vh - 110px) * 0.85);
       max-height: calc((100dvh - 110px) * 0.85);
       aspect-ratio: 16 / 9;
+      margin-top: clamp(24px, 8vh, 70px); /* 하단 6개 버튼 독 방향으로 50% 내려 상단 제목/부제목 공간 확보 */
       background: rgba(13, 18, 30, 0.92);
       border: 1.5px solid rgba(56, 189, 248, 0.38);
       border-radius: 20px;
@@ -99,6 +100,7 @@
         width: 85%;
         max-width: min(calc(96vw * 0.85), calc((100dvh - 90px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 90px) * 0.85);
+        margin-top: clamp(36px, 12vh, 90px); /* 모바일 세로 화면에서도 하단 독 쪽으로 50% 하향 배치 */
         border-radius: 14px;
       }
     }
@@ -112,6 +114,7 @@
         width: 85%;
         max-width: min(calc((100vw - 20px) * 0.85), calc((100dvh - 52px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 52px) * 0.85);
+        margin-top: clamp(8px, 4vh, 18px);
         border-radius: 12px;
       }
       /* 모바일 가로 모드 시 하단 6개 버튼 독을 슬림 모드로 전환하여 화면 가림 방지 */
