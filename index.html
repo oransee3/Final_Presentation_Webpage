@@ -890,24 +890,26 @@
     </div>
   </main>
 
-  <!-- 동영상 무한 반복 자동 재생 및 2배 저속(0.5배속) 안정적 재생 스크립트 -->
+  <!-- 동영상 무한 반복 자동 재생 및 최적 감속 속도(0.75배속) 안정적 재생 스크립트 -->
   <script>
     (function initShowcaseVideo() {
       const video = document.getElementById('mainShowcaseVideo');
       if (video) {
         video.muted = true;
 
-        // 2배 정도 느리게 재생 (0.5배속) 강제 동기화 함수
-        const enforceHalfSpeed = function() {
-          if (video.playbackRate !== 0.5) {
-            video.playbackRate = 0.5;
+        // 최적 감속 재생 속도 (0.75배속: 너무 빠르지도 느리지도 않은 시인성 최적 속도)
+        const TARGET_PLAYBACK_RATE = 0.75;
+
+        const enforcePlaybackSpeed = function() {
+          if (video.playbackRate !== TARGET_PLAYBACK_RATE) {
+            video.playbackRate = TARGET_PLAYBACK_RATE;
           }
         };
 
-        enforceHalfSpeed();
+        enforcePlaybackSpeed();
 
         const startPlay = function() {
-          enforceHalfSpeed();
+          enforcePlaybackSpeed();
           const promise = video.play();
           if (promise !== undefined) {
             promise.catch(function(err) {
@@ -923,26 +925,26 @@
           video.addEventListener('canplay', startPlay, { once: true });
         }
 
-        // 재생 시작, 재생 속도 변경 시도 시 0.5배속(2배 저속) 강력 유지
-        video.addEventListener('play', enforceHalfSpeed);
-        video.addEventListener('playing', enforceHalfSpeed);
+        // 재생 시작, 재생 속도 변경 시도 시 0.75배속 강력 유지
+        video.addEventListener('play', enforcePlaybackSpeed);
+        video.addEventListener('playing', enforcePlaybackSpeed);
         video.addEventListener('ratechange', function() {
-          if (video.playbackRate !== 0.5) {
-            video.playbackRate = 0.5;
+          if (video.playbackRate !== TARGET_PLAYBACK_RATE) {
+            video.playbackRate = TARGET_PLAYBACK_RATE;
           }
         });
 
-        // 반복 재생 보장 (루프 재생 시에도 0.5배속 유지)
+        // 반복 재생 보장 (루프 재생 시에도 0.75배속 유지)
         video.addEventListener('ended', function() {
           video.currentTime = 0;
-          enforceHalfSpeed();
+          enforcePlaybackSpeed();
           video.play().catch(function() {});
         });
 
         // 모바일 브라우저 최초 제스처 시 재생 정책 해제 보장
         const unlockPlay = function() {
           if (video.paused) {
-            enforceHalfSpeed();
+            enforcePlaybackSpeed();
             video.play().catch(function() {});
           }
           document.removeEventListener('touchstart', unlockPlay);
