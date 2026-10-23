@@ -210,8 +210,8 @@ function initSubpageGNB() {
   const currentNum = detectCurrentPartNumber();
   if (!currentNum) return;
 
-  // Part 1, Part 2에서는 좌측 상단 홈버튼 시스템(홈, 좌측 화살표, 케이스, 우측 화살표) 삭제
-  if (currentNum === 1 || currentNum === 2) return;
+  // Part 1, Part 2, Part 3에서는 좌측 상단 홈버튼 시스템(홈, 좌측 화살표, 케이스, 우측 화살표) 삭제
+  if ([1, 2, 3].includes(currentNum)) return;
 
   // 이미 마운트된 경우 중복 방지
   if (document.getElementById('fpGlobalMiniNav')) return;
