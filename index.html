@@ -35,13 +35,13 @@
       box-sizing: border-box;
     }
 
-    /* KAPWING 스타일의 16:9 프리미엄 윈도우 프레임 */
+    /* 16:9 프리미엄 쇼케이스 프레임 (기존 대비 15% 축소: 85% 크기 최적화) */
     .showcase-window-card {
-      width: 100%;
-      max-width: min(calc(100vw - 24px), calc((100vh - 110px) * 16 / 9));
-      max-width: min(calc(100vw - 24px), calc((100dvh - 110px) * 16 / 9));
-      max-height: calc(100vh - 110px);
-      max-height: calc(100dvh - 110px);
+      width: 85%;
+      max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 110px) * 16 / 9 * 0.85));
+      max-width: min(calc((100vw - 24px) * 0.85), calc((100dvh - 110px) * 16 / 9 * 0.85));
+      max-height: calc((100vh - 110px) * 0.85);
+      max-height: calc((100dvh - 110px) * 0.85);
       aspect-ratio: 16 / 9;
       background: rgba(13, 18, 30, 0.92);
       border: 1.5px solid rgba(56, 189, 248, 0.38);
@@ -96,9 +96,9 @@
         padding: 12px 10px 80px;
       }
       .showcase-window-card {
-        width: 100%;
-        max-width: min(96vw, calc((100dvh - 90px) * 16 / 9));
-        max-height: calc(100dvh - 90px);
+        width: 85%;
+        max-width: min(calc(96vw * 0.85), calc((100dvh - 90px) * 16 / 9 * 0.85));
+        max-height: calc((100dvh - 90px) * 0.85);
         border-radius: 14px;
       }
     }
@@ -109,9 +109,9 @@
         padding: 6px 12px 46px; /* 하단 콤팩트 독 높이에 맞춘 최소 여백 */
       }
       .showcase-window-card {
-        width: 100%;
-        max-width: min(calc(100vw - 20px), calc((100dvh - 52px) * 16 / 9));
-        max-height: calc(100dvh - 52px);
+        width: 85%;
+        max-width: min(calc((100vw - 20px) * 0.85), calc((100dvh - 52px) * 16 / 9 * 0.85));
+        max-height: calc((100dvh - 52px) * 0.85);
         border-radius: 12px;
       }
       /* 모바일 가로 모드 시 하단 6개 버튼 독을 슬림 모드로 전환하여 화면 가림 방지 */
