@@ -814,6 +814,88 @@
       }
     });
   });
+
+  // === 모바일 터치 제스처 (1손가락 드래그 이동 + 2손가락 핀치 줌) & 줌 제어 API ===
+  window.zoomByFactor = function(factor) {
+    const minS = typeof MIN_SCALE !== 'undefined' ? MIN_SCALE : 0.15;
+    const maxS = typeof MAX_SCALE !== 'undefined' ? MAX_SCALE : 2.50;
+    camScale = Math.min(maxS, Math.max(minS, camScale * factor));
+    applyTransform();
+  };
+
+  window.resetZoom = function() {
+    camScale = typeof DEFAULT_SCALE !== 'undefined' ? DEFAULT_SCALE : (typeof camScale === 'number' ? 0.50 : 0.50);
+    camX = 0;
+    camY = 0;
+    applyTransform();
+  };
+
+  let touchStartX = 0, touchStartY = 0;
+  let initialPinchDist = null;
+  let initialScale = 0.50;
+  let isTouching = false;
+  let lastTapTime = 0;
+
+  function getTouchDistance(touches) {
+    return Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY
+    );
+  }
+
+  viewport.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTapTime < 300) {
+        window.resetZoom();
+        lastTapTime = 0;
+        return;
+      }
+      lastTapTime = now;
+
+      isTouching = true;
+      touchStartX = e.touches[0].clientX - camX;
+      touchStartY = e.touches[0].clientY - camY;
+      initialPinchDist = null;
+      viewport.classList.add('dragging');
+      if (canvas && canvas.classList) canvas.classList.add('manual-mode');
+    } else if (e.touches.length === 2) {
+      isTouching = true;
+      initialPinchDist = getTouchDistance(e.touches);
+      initialScale = camScale;
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isTouching) return;
+    if (e.touches.length === 1 && initialPinchDist === null) {
+      e.preventDefault();
+      camX = e.touches[0].clientX - touchStartX;
+      camY = e.touches[0].clientY - touchStartY;
+      applyTransform();
+    } else if (e.touches.length === 2 && initialPinchDist !== null) {
+      e.preventDefault();
+      const currentDist = getTouchDistance(e.touches);
+      const factor = currentDist / initialPinchDist;
+      const minS = typeof MIN_SCALE !== 'undefined' ? MIN_SCALE : 0.15;
+      const maxS = typeof MAX_SCALE !== 'undefined' ? MAX_SCALE : 2.50;
+      camScale = Math.min(maxS, Math.max(minS, initialScale * factor));
+      applyTransform();
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      isTouching = false;
+      initialPinchDist = null;
+      viewport.classList.remove('dragging');
+    } else if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX - camX;
+      touchStartY = e.touches[0].clientY - camY;
+      initialPinchDist = null;
+    }
+  });
+
 </script>
 </body>
 </html>
