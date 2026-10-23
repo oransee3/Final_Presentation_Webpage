@@ -106,17 +106,17 @@
       will-change: opacity, transform, filter;
     }
 
-    /* 첫 번째 윗줄: 200%에서 100%로 1.5초 줌인 & 페이드 인 */
+    /* 첫 번째 윗줄: 200%에서 100%로 1.5초 줌인 & 페이드 인 (총 10초 주기, 5초 유지) */
     .subtitle-line-1 {
       font-size: clamp(1.15rem, 1.7vw, 1.55rem);
       font-weight: 600;
       letter-spacing: -0.02em;
       color: #a5f3fc;
       text-shadow: 0 0 16px rgba(34, 211, 238, 0.45);
-      animation: subtitleZoomInLine1 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subtitleZoomInLine1 10s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
-    /* 두 번째 아랫줄: 200%에서 100%로 1.0초 줌인 & 페이드 인 */
+    /* 두 번째 아랫줄: 200%에서 100%로 1.0초 줌인 & 페이드 인 (총 10초 주기, 5초 유지) */
     .subtitle-line-2 {
       font-size: clamp(1.4rem, 2.2vw, 2.05rem);
       font-weight: 800;
@@ -125,7 +125,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
-      animation: subtitleZoomInLine2 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subtitleZoomInLine2 10s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
     /* 중간점(·) 스타일 */
@@ -145,24 +145,24 @@
       opacity: 0.9;
     }
 
-    /* 부제목 첫 번째 줄: 큰 상태(200%)에서 원래상태(100%)로 1.5초 줌인 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
+    /* 부제목 첫 번째 줄: 큰 상태(200%)에서 원래상태(100%)로 1.5초 줌인 페이드인 -> 7.5s까지(5초) 유지 -> 9.0s까지(1.5초) 동시 페이드아웃 */
     @keyframes subtitleZoomInLine1 {
       0% {
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      18.75% { /* 1.5s / 8.0s: 200% -> 100% 줌인 완료 */
+      15% { /* 1.5s / 10.0s: 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      68.75% { /* 5.5s / 8.0s: 100% 상태에서 3.0초간 유지 */
+      75% { /* 7.5s / 10.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      87.5% { /* 7.0s / 8.0s: 1.5초 동안 동시 페이드 아웃 */
+      90% { /* 9.0s / 10.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -174,24 +174,24 @@
       }
     }
 
-    /* 부제목 두 번째 줄: 1.5s 대기 -> 큰 상태(200%)에서 원래상태(100%)로 1.0초 줌인 페이드인 -> 5.5s까지(3초) 유지 -> 7.0s까지(1.5초) 동시 페이드아웃 */
+    /* 부제목 두 번째 줄: 1.5s 대기 -> 큰 상태(200%)에서 원래상태(100%)로 1.0초 줌인 페이드인 -> 7.5s까지(5초) 유지 -> 9.0s까지(1.5초) 동시 페이드아웃 */
     @keyframes subtitleZoomInLine2 {
-      0%, 18.75% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
+      0%, 15% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      31.25% { /* 2.5s / 8.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
+      25% { /* 2.5s / 10.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      68.75% { /* 5.5s / 8.0s: 100% 상태에서 3.0초간 유지 */
+      75% { /* 7.5s / 10.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      87.5% { /* 7.0s / 8.0s: 1.5초 동안 동시 페이드 아웃 */
+      90% { /* 9.0s / 10.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
