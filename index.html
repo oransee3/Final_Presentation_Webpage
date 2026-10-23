@@ -132,18 +132,26 @@
 
     /* [1번째 세트 애니메이션 바인딩] */
     .subtitle-group-1 .subtitle-line-1 {
-      animation: subSet1ZoomInLine1 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subSet1ZoomInLine1 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
     .subtitle-group-1 .subtitle-line-2 {
-      animation: subSet1ZoomInLine2 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subSet1ZoomInLine2 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
     /* [2번째 세트 애니메이션 바인딩] */
     .subtitle-group-2 .subtitle-line-1 {
-      animation: subSet2ZoomInLine1 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subSet2ZoomInLine1 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
     .subtitle-group-2 .subtitle-line-2 {
-      animation: subSet2ZoomInLine2 20s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation: subSet2ZoomInLine2 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    /* [3번째 세트 애니메이션 바인딩] */
+    .subtitle-group-3 .subtitle-line-1 {
+      animation: subSet3ZoomInLine1 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .subtitle-group-3 .subtitle-line-2 {
+      animation: subSet3ZoomInLine2 30s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
     /* 중간점(·) 스타일 (글자 아래 불릿 점 충돌 완전 제거 및 순수 가운뎃점 네온 스타일) */
@@ -169,7 +177,7 @@
     }
 
     /* ========================================================
-       1번째 세트 키프레임: 0s~10s 구간 동작 (총 20초 주기)
+       1번째 세트 키프레임: 0s~10s 구간 동작 (총 30초 주기)
        0s~1.5s 윗줄 줌인 -> 1.5s~2.5s 아랫줄 줌인 -> 7.5s까지(5초간) 100% 유지 -> 9.0s까지(1.5초간) 동시 페이드아웃
        ======================================================== */
     @keyframes subSet1ZoomInLine1 {
@@ -178,17 +186,17 @@
         transform: scale(2.0);
         filter: blur(5px);
       }
-      7.5% { /* 1.5s / 20.0s: 200% -> 100% 줌인 완료 */
+      5% { /* 1.5s / 30.0s: 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      37.5% { /* 7.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+      25% { /* 7.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      45% { /* 9.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+      30% { /* 9.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -201,22 +209,22 @@
     }
 
     @keyframes subSet1ZoomInLine2 {
-      0%, 7.5% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
+      0%, 5% { /* 0s ~ 1.5s: 첫 번째 줄 완료까지 대기 */
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      12.5% { /* 2.5s / 20.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
+      8.333% { /* 2.5s / 30.0s: 1.5s~2.5s(1.0초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      37.5% { /* 7.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+      25% { /* 7.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      45% { /* 9.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+      30% { /* 9.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -229,26 +237,26 @@
     }
 
     /* ========================================================
-       2번째 세트 키프레임: 10s~20s 구간 동작 (총 20초 주기)
+       2번째 세트 키프레임: 10s~20s 구간 동작 (총 30초 주기)
        10s~11.5s 윗줄 줌인 -> 11.5s~12.5s 아랫줄 줌인 -> 17.5s까지(5초간) 100% 유지 -> 19.0s까지(1.5초간) 동시 페이드아웃
        ======================================================== */
     @keyframes subSet2ZoomInLine1 {
-      0%, 50% { /* 0s ~ 10.0s: 1번째 세트 진행 동안 대기 */
+      0%, 33.333% { /* 0s ~ 10.0s: 1번째 세트 진행 동안 대기 */
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      57.5% { /* 11.5s / 20.0s: 10.0s~11.5s(1.5초간) 200% -> 100% 줌인 완료 */
+      38.333% { /* 11.5s / 30.0s: 10.0s~11.5s(1.5초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      87.5% { /* 17.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+      58.333% { /* 17.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      95% { /* 19.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+      63.333% { /* 19.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -261,22 +269,82 @@
     }
 
     @keyframes subSet2ZoomInLine2 {
-      0%, 57.5% { /* 0s ~ 11.5s: 2번째 세트 윗줄 완료까지 대기 */
+      0%, 38.333% { /* 0s ~ 11.5s: 2번째 세트 윗줄 완료까지 대기 */
         opacity: 0;
         transform: scale(2.0);
         filter: blur(5px);
       }
-      62.5% { /* 12.5s / 20.0s: 11.5s~12.5s(1.0초간) 200% -> 100% 줌인 완료 */
+      41.667% { /* 12.5s / 30.0s: 11.5s~12.5s(1.0초간) 200% -> 100% 줌인 완료 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      87.5% { /* 17.5s / 20.0s: 100% 상태에서 5.0초간 유지 */
+      58.333% { /* 17.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
         opacity: 1;
         transform: scale(1.0);
         filter: blur(0px);
       }
-      95% { /* 19.0s / 20.0s: 1.5초 동안 동시 페이드 아웃 */
+      63.333% { /* 19.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+    }
+
+    /* ========================================================
+       3번째 세트 키프레임: 20s~30s 구간 동작 (총 30초 주기)
+       20s~21.5s 윗줄 줌인 -> 21.5s~22.5s 아랫줄 줌인 -> 27.5s까지(5초간) 100% 유지 -> 29.0s까지(1.5초간) 동시 페이드아웃
+       ======================================================== */
+    @keyframes subSet3ZoomInLine1 {
+      0%, 66.667% { /* 0s ~ 20.0s: 1·2번째 세트 진행 동안 대기 */
+        opacity: 0;
+        transform: scale(2.0);
+        filter: blur(5px);
+      }
+      71.667% { /* 21.5s / 30.0s: 20.0s~21.5s(1.5초간) 200% -> 100% 줌인 완료 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      91.667% { /* 27.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      96.667% { /* 29.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(2px);
+      }
+    }
+
+    @keyframes subSet3ZoomInLine2 {
+      0%, 71.667% { /* 0s ~ 21.5s: 3번째 세트 윗줄 완료까지 대기 */
+        opacity: 0;
+        transform: scale(2.0);
+        filter: blur(5px);
+      }
+      75% { /* 22.5s / 30.0s: 21.5s~22.5s(1.0초간) 200% -> 100% 줌인 완료 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      91.667% { /* 27.5s / 30.0s: 100% 상태에서 5.0초간 유지 */
+        opacity: 1;
+        transform: scale(1.0);
+        filter: blur(0px);
+      }
+      96.667% { /* 29.0s / 30.0s: 1.5초 동안 동시 페이드 아웃 */
         opacity: 0;
         transform: scale(0.96);
         filter: blur(2px);
@@ -556,7 +624,7 @@
       <div class="title-accent-glow"></div>
     </header>
 
-    <!-- 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 (1세트 & 2세트 순차 교대) -->
+    <!-- 1. 제목과 동영상 사이: 부제목을 넣을 전용 공간 영역 (1·2·3세트 순차 교대) -->
     <div class="presentation-subtitle-zone" id="presentationSubtitleZone">
       
       <!-- 1번째 부제목 세트 -->
@@ -572,6 +640,14 @@
         <p class="subtitle-line subtitle-line-1">별도 설치 없이 즉시 실행되는</p>
         <p class="subtitle-line subtitle-line-2">
           단 하나의 통합 실행 시스템
+        </p>
+      </div>
+
+      <!-- 3번째 부제목 세트 -->
+      <div class="subtitle-group subtitle-group-3">
+        <p class="subtitle-line subtitle-line-1">AI 기획부터 에셋 수집, 3x3 스토리보드 분할</p>
+        <p class="subtitle-line subtitle-line-2">
+          NVIDIA NVENC GPU 렌더링까지 자동으로 처리
         </p>
       </div>
 
