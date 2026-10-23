@@ -131,6 +131,14 @@
       background: #030712;
     }
 
+    /* 동영상 컨트롤러 및 진행 상태바 완전 은닉 (순수 동영상 화면 전용) */
+    video.showcase-media::-webkit-media-controls {
+      display: none !important;
+    }
+    video.showcase-media::-webkit-media-controls-enclosure {
+      display: none !important;
+    }
+
     /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) */
     @media (max-width: 860px) and (orientation: portrait) {
       .presentation-stage {
@@ -228,9 +236,8 @@
         <div class="window-tag">16:9 HD Showcase</div>
       </div>
 
-      <!-- 16:9 인터페이스 미디어 컨테이너 (동영상 및 고화질 스크린샷 완벽 지원) -->
+      <!-- 16:9 인터페이스 동영상 컨테이너 (무한 반복 자동 재생 & 컨트롤 바 없는 순수 화면) -->
       <div class="showcase-media-wrap">
-        <!-- 동영상 파일이 지정되었거나 존재할 경우 자동 재생 -->
         <video 
           id="mainShowcaseVideo" 
           class="showcase-media" 
@@ -238,41 +245,63 @@
           muted 
           loop 
           playsinline 
-          controls 
+          webkit-playsinline
           preload="auto"
-          style="display: none;"
+          disablepictureinpicture
+          controlslist="nodownload nofullscreen noremoteplayback"
+          poster="./MainpageImage/back.png"
         >
-          <source src="./assets/main_showcase_video.webm" type="video/webm">
-          <source src="./assets/main_showcase_video.mp4" type="video/mp4">
+          <source src="./MainpageImage/mainMove01.webm" type="video/webm">
+          <!-- 비디오 미지원 환경 폴백 이미지 -->
+          <img 
+            src="./MainpageImage/back.png" 
+            alt="AI Domus Music Studio 시스템 통합 인터페이스 쇼케이스" 
+            class="showcase-media" 
+          />
         </video>
-
-        <!-- 고화질 원본 인터페이스 이미지 (동영상 미로드 시 기본 표시) -->
-        <img 
-          id="mainShowcaseImg" 
-          class="showcase-media" 
-          src="./assets/main_showcase_ui.png" 
-          alt="AI Domus Music Studio 시스템 통합 인터페이스 쇼케이스" 
-        />
       </div>
 
     </div>
   </main>
 
-  <!-- 동영상 파일 자동 감지 및 스마트 미디어 스위처 -->
+  <!-- 동영상 무한 반복 자동 재생 보장 스크립트 -->
   <script>
-    (function checkShowcaseVideo() {
+    (function initShowcaseVideo() {
       const video = document.getElementById('mainShowcaseVideo');
-      const img = document.getElementById('mainShowcaseImg');
-      if (video && img) {
-        video.addEventListener('loadeddata', () => {
-          img.style.display = 'none';
-          video.style.display = 'block';
-          video.play().catch(() => {});
+      if (video) {
+        video.muted = true;
+        const startPlay = function() {
+          const promise = video.play();
+          if (promise !== undefined) {
+            promise.catch(function(err) {
+              console.log('Video autoplay deferred:', err);
+            });
+          }
+        };
+
+        if (video.readyState >= 2) {
+          startPlay();
+        } else {
+          video.addEventListener('loadedmetadata', startPlay, { once: true });
+          video.addEventListener('canplay', startPlay, { once: true });
+        }
+
+        // 반복 재생 보장
+        video.addEventListener('ended', function() {
+          video.currentTime = 0;
+          video.play().catch(function() {});
         });
-        video.addEventListener('error', () => {
-          video.style.display = 'none';
-          img.style.display = 'block';
-        });
+
+        // 모바일 브라우저 최초 제스처 시 재생 정책 해제 보장
+        const unlockPlay = function() {
+          if (video.paused) {
+            video.play().catch(function() {});
+          }
+          document.removeEventListener('touchstart', unlockPlay);
+          document.removeEventListener('click', unlockPlay);
+        };
+        document.addEventListener('touchstart', unlockPlay, { passive: true });
+        document.addEventListener('click', unlockPlay);
       }
     })();
   </script>

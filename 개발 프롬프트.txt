@@ -24,9 +24,12 @@ https://final-presentation-webpage.vercel.app/
 
 //==============================
 
+메인페이지에 위치하고 있는 이미지 대신 
+C:\Users\OWNER\Documents\Final_Presentation_Webpage\MainpageImage 폴더 안에 있는 mainMove01.webm 동영상 파일을 넣어줘.
+동영상이 반복 재생 되도록 해주고 플레이 진행 상태바는 없이 순수한 동영상 화면만 나오도록 해줘.
+현재 프로그램은 완성도가 매우 높으므로 전체 코드는 락을 걸어서 수정이 필요한 코드블록만 100% 완벽하게 수정해서 완성해줘.
 
-
-
+//==============================
 
 
 
