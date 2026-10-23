@@ -20,7 +20,7 @@
       user-select: none;
     }
 
-    /* 뷰포트 중앙 16:9 쇼케이스 정렬 */
+    /* 뷰포트 정중앙 16:9 쇼케이스 스테이지 */
     .presentation-stage {
       width: 100vw;
       height: 100vh;
@@ -31,11 +31,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 16px 20px 84px; /* 하단 6개 버튼 독과의 간격 확보 */
+      padding: 0;
+      margin: 0;
       box-sizing: border-box;
     }
 
-    /* 16:9 프리미엄 쇼케이스 프레임 (기존 대비 15% 축소 및 하단 독 쪽으로 50% 하향 배치) */
+    /* 16:9 프리미엄 쇼케이스 프레임 (기존 대비 15% 축소 및 화면 정중앙 정렬) */
     .showcase-window-card {
       width: 85%;
       max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 110px) * 16 / 9 * 0.85));
@@ -43,7 +44,7 @@
       max-height: calc((100vh - 110px) * 0.85);
       max-height: calc((100dvh - 110px) * 0.85);
       aspect-ratio: 16 / 9;
-      margin-top: clamp(24px, 8vh, 70px); /* 하단 6개 버튼 독 방향으로 50% 내려 상단 제목/부제목 공간 확보 */
+      margin: 0 auto; /* 수평/수직 완전한 화면 정중앙 정렬 */
       background: rgba(13, 18, 30, 0.92);
       border: 1.5px solid rgba(56, 189, 248, 0.38);
       border-radius: 20px;
@@ -91,30 +92,30 @@
       display: none !important;
     }
 
-    /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) */
+    /* 1. 모바일 세로 모드 (Portrait: 9:16 ~ 9:20 스마트폰) 화면 정중앙 정렬 */
     @media (max-width: 860px) and (orientation: portrait) {
       .presentation-stage {
-        padding: 12px 10px 80px;
+        padding: 0;
       }
       .showcase-window-card {
         width: 85%;
         max-width: min(calc(96vw * 0.85), calc((100dvh - 90px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 90px) * 0.85);
-        margin-top: clamp(36px, 12vh, 90px); /* 모바일 세로 화면에서도 하단 독 쪽으로 50% 하향 배치 */
+        margin: 0 auto; /* 세로 화면 완전 정중앙 정렬 */
         border-radius: 14px;
       }
     }
 
-    /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) 특화 반응형 */
+    /* 2. 모바일 가로 모드 (Landscape: 16:9 ~ 20:9 스마트폰) 화면 정중앙 정렬 */
     @media (max-height: 540px) and (orientation: landscape) {
       .presentation-stage {
-        padding: 6px 12px 46px; /* 하단 콤팩트 독 높이에 맞춘 최소 여백 */
+        padding: 0;
       }
       .showcase-window-card {
         width: 85%;
         max-width: min(calc((100vw - 20px) * 0.85), calc((100dvh - 52px) * 16 / 9 * 0.85));
         max-height: calc((100dvh - 52px) * 0.85);
-        margin-top: clamp(8px, 4vh, 18px);
+        margin: 0 auto; /* 가로 화면 완전 정중앙 정렬 */
         border-radius: 12px;
       }
       /* 모바일 가로 모드 시 하단 6개 버튼 독을 슬림 모드로 전환하여 화면 가림 방지 */
