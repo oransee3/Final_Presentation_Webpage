@@ -166,13 +166,13 @@
       box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
     }
 
-    /* 16:9 프리미엄 쇼케이스 프레임 (화면 균형 최적화) */
+    /* 16:9 프리미엄 쇼케이스 프레임 (화면 균형 최적화 - 16:9 비율 유지 10% 축소: 75%) */
     .showcase-window-card {
-      width: 85%;
-      max-width: min(calc((100vw - 24px) * 0.85), calc((100vh - 270px) * 16 / 9 * 0.85));
-      max-width: min(calc((100vw - 24px) * 0.85), calc((100dvh - 270px) * 16 / 9 * 0.85));
-      max-height: calc((100vh - 270px) * 0.85);
-      max-height: calc((100dvh - 270px) * 0.85);
+      width: 75%;
+      max-width: min(calc((100vw - 24px) * 0.75), calc((100vh - 270px) * 16 / 9 * 0.75));
+      max-width: min(calc((100vw - 24px) * 0.75), calc((100dvh - 270px) * 16 / 9 * 0.75));
+      max-height: calc((100vh - 270px) * 0.75);
+      max-height: calc((100dvh - 270px) * 0.75);
       aspect-ratio: 16 / 9;
       flex-shrink: 0;
       margin: auto auto; /* 상단 타이틀과 하단 독 사이의 남은 공간 중앙에 비디오 배치 */
@@ -254,9 +254,9 @@
         min-height: clamp(38px, 6.5vh, 70px);
       }
       .showcase-window-card {
-        width: 85%;
-        max-width: min(calc(96vw * 0.85), calc((100dvh - 270px) * 16 / 9 * 0.85));
-        max-height: calc((100dvh - 270px) * 0.85);
+        width: 75%;
+        max-width: min(calc(96vw * 0.75), calc((100dvh - 270px) * 16 / 9 * 0.75));
+        max-height: calc((100dvh - 270px) * 0.75);
         flex-shrink: 0;
         margin: auto auto;
         border-radius: 14px;
@@ -289,9 +289,9 @@
         min-height: 18px;
       }
       .showcase-window-card {
-        width: 85%;
-        max-width: min(calc((100vw - 20px) * 0.85), calc((100dvh - 84px) * 16 / 9 * 0.85));
-        max-height: calc((100dvh - 84px) * 0.85);
+        width: 75%;
+        max-width: min(calc((100vw - 20px) * 0.75), calc((100dvh - 84px) * 16 / 9 * 0.75));
+        max-height: calc((100dvh - 84px) * 0.75);
         flex-shrink: 0;
         margin: auto auto;
         border-radius: 12px;
