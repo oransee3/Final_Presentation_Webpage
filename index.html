@@ -375,7 +375,7 @@
     .video-accent-glow {
       width: clamp(260px, 32vw, 520px);
       height: 2px;
-      margin: 28px auto 0;
+      margin: clamp(40px, 4.2vh, 52px) auto 0; /* 동영상과의 간격을 충분히 벌려 아래로 하향 배치 */
       background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent);
       border-radius: 999px;
       box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
@@ -388,7 +388,7 @@
       width: 100%;
       max-width: min(94vw, 1300px);
       min-height: 70px;
-      margin: 22px 0 20px;
+      margin: clamp(26px, 2.8vh, 36px) 0 20px; /* 색상 라인 아래로 첫번째/두번째 문구를 여유 있게 하향 배치 */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -702,11 +702,11 @@
       }
       .video-accent-glow {
         width: 140px;
-        margin: 14px auto 0;
+        margin: 20px auto 0;
       }
       .presentation-meta-zone {
         min-height: clamp(38px, 6.5vh, 70px);
-        margin: 16px 0 10px;
+        margin: 18px 0 10px;
         gap: 5px;
       }
       .meta-line-team {
