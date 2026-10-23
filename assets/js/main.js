@@ -955,6 +955,8 @@ function injectKeypadStyles() {
 
 function injectMobileResponsiveStyles() {
   if (document.getElementById('fpMobileGlobalResponsiveStyles')) return;
+  const currentNum = detectCurrentPartNumber();
+  if (!currentNum) return; // 메인 허브는 16:9 정중앙 뷰포트 레이아웃을 유지하므로 서브페이지 전용 반응형 스타일 주입 제외
   const style = document.createElement('style');
   style.id = 'fpMobileGlobalResponsiveStyles';
   style.textContent = `
