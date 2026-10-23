@@ -388,7 +388,7 @@
       width: 100%;
       max-width: min(94vw, 1300px);
       min-height: 70px;
-      margin: clamp(26px, 2.8vh, 36px) 0 20px; /* 색상 라인 아래로 첫번째/두번째 문구를 여유 있게 하향 배치 */
+      margin: clamp(26px, 2.8vh, 36px) 0 0; /* 상단 색상 라인 아래로 여유 있게 배치 (하단 마진은 하단 색상 라인에서 제어) */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -398,6 +398,18 @@
       z-index: 2;
       box-sizing: border-box;
       pointer-events: none;
+    }
+
+    /* 두 번째 문구 하단 상시 고정 네온 오로라 색상 라인 (페이드 인/아웃 없는 상시 고정) */
+    .meta-bottom-accent-glow {
+      width: clamp(260px, 32vw, 520px);
+      height: 2px;
+      margin: clamp(24px, 2.6vh, 34px) auto clamp(24px, 2.8vh, 36px);
+      background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent);
+      border-radius: 999px;
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
+      z-index: 2;
+      flex-shrink: 0;
     }
 
     /* 팀명/멘토명 텍스트 라인 (중앙 정렬) */
@@ -706,8 +718,12 @@
       }
       .presentation-meta-zone {
         min-height: clamp(38px, 6.5vh, 70px);
-        margin: 18px 0 10px;
+        margin: 18px 0 0;
         gap: 5px;
+      }
+      .meta-bottom-accent-glow {
+        width: 140px;
+        margin: 16px auto 14px;
       }
       .meta-line-team {
         font-size: clamp(0.95rem, 3.8vw, 1.25rem);
@@ -760,6 +776,9 @@
         display: none;
       }
       .video-accent-glow {
+        display: none;
+      }
+      .meta-bottom-accent-glow {
         display: none;
       }
       .presentation-subtitle-zone {
@@ -910,6 +929,9 @@
         <span class="meta-mentor-name">전현식 퍼실리테이터</span>
       </p>
     </div>
+
+    <!-- 두 번째 문구 하단 상시 고정 색상 라인 (페이드 인/아웃 없는 상시 고정) -->
+    <div class="meta-bottom-accent-glow"></div>
   </main>
 
   <!-- 동영상 무한 반복 자동 재생 및 최적 감속 속도(0.75배속) 안정적 재생 스크립트 -->
