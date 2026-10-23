@@ -128,15 +128,20 @@
       animation: subtitleZoomInLine2 10s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
 
-    /* 중간점(·) 스타일 */
-    .sub-dot {
+    /* 중간점(·) 스타일 (글자 아래 불릿 점 충돌 완전 제거 및 순수 가운뎃점 네온 스타일) */
+    .subtitle-mid-dot {
       display: inline-block;
-      margin: 0 8px;
+      margin: 0 10px;
+      width: auto !important;
+      height: auto !important;
+      background: none !important;
+      border-radius: 0 !important;
       -webkit-text-fill-color: initial;
       color: #22d3ee;
       font-weight: 900;
-      text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+      text-shadow: 0 0 12px rgba(34, 211, 238, 0.9);
       vertical-align: middle;
+      line-height: 1;
     }
 
     .sub-paren {
@@ -476,7 +481,7 @@
       <div class="subtitle-content">
         <p class="subtitle-line subtitle-line-1">단 몇 줄의 프롬프트로</p>
         <p class="subtitle-line subtitle-line-2">
-          음원<span class="sub-paren">(mp3)</span><span class="sub-dot">·</span>음악동영상<span class="sub-dot">·</span>유튜브 업로드까지
+          음원<span class="sub-paren">(mp3)</span><span class="subtitle-mid-dot">·</span>음악동영상<span class="subtitle-mid-dot">·</span>유튜브 업로드까지
         </p>
       </div>
     </div>
