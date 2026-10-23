@@ -202,59 +202,6 @@
       display: block;
     }
 
-    /* 모바일 및 터치 전용 플로팅 줌 컨트롤러 */
-    .viewer-zoom-dock {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      z-index: 10;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 8px;
-      background: rgba(13, 22, 42, 0.90);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(34, 211, 238, 0.38);
-      border-radius: 999px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 12px rgba(34, 211, 238, 0.2);
-    }
-    .zoom-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 30px;
-      padding: 0 10px;
-      background: rgba(30, 41, 59, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 999px;
-      color: #38bdf8;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      outline: none;
-      transition: all 0.15s ease;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .zoom-btn:active {
-      transform: scale(0.92);
-      background: rgba(34, 211, 238, 0.3);
-      color: #ffffff;
-      border-color: #22d3ee;
-    }
-    @media (max-width: 600px) {
-      .viewer-zoom-dock {
-        top: 8px;
-        right: 8px;
-        padding: 3px 6px;
-      }
-      .zoom-btn {
-        height: 26px;
-        padding: 0 8px;
-        font-size: 11px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -284,12 +231,6 @@
     <!-- 2행 결과물 뷰어: 고정 iframe 구조로 깜빡임 및 로드 누락 방지[cite: 2] -->
     <main class="showcase-layout">
       <section class="viewer-card" style="position: relative;">
-        <!-- 터치 및 원클릭 줌 컨트롤러 -->
-        <div class="viewer-zoom-dock">
-          <button type="button" class="zoom-btn" onclick="zoomWorkflow(1.25)" title="화면 확대 (+)">🔍 +</button>
-          <button type="button" class="zoom-btn" onclick="zoomWorkflow(0.8)" title="화면 축소 (-)">🔍 −</button>
-          <button type="button" class="zoom-btn" onclick="resetWorkflowZoom()" title="기본 크기로 맞춤">⊙ 맞춤</button>
-        </div>
         <div class="visual-window" id="visualWindow">
           <iframe id="mainViewerFrame" class="content-frame" src="./1-AI%20Music%20Video%20Workflow.html" title="AI Music Studio 워크플로우 설계"></iframe>
         </div>
@@ -385,32 +326,6 @@
       iframe.title = data.title;
       // 상대경로와 공백 인코딩 처리
       iframe.src = './' + encodeURIComponent(data.fileName);
-    }
-
-    function zoomWorkflow(factor) {
-      const iframe = document.getElementById('mainViewerFrame');
-      if (iframe && iframe.contentWindow) {
-        try {
-          if (typeof iframe.contentWindow.zoomByFactor === 'function') {
-            iframe.contentWindow.zoomByFactor(factor);
-          }
-        } catch (e) {
-          console.warn('Iframe zoom interaction error:', e);
-        }
-      }
-    }
-
-    function resetWorkflowZoom() {
-      const iframe = document.getElementById('mainViewerFrame');
-      if (iframe && iframe.contentWindow) {
-        try {
-          if (typeof iframe.contentWindow.resetZoom === 'function') {
-            iframe.contentWindow.resetZoom();
-          }
-        } catch (e) {
-          console.warn('Iframe reset interaction error:', e);
-        }
-      }
     }
 
     window.onload = function() {
