@@ -451,6 +451,22 @@
       margin: 0;
     }
 
+    /* 영문 공식 서브타이틀 (중앙 정렬 및 미래지향적 타이포그래피) */
+    .hero-sub-title-en {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      font-size: clamp(0.85rem, 1.05vw, 1.12rem);
+      font-weight: 500;
+      line-height: 1.45;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+      text-align: center;
+      margin: 9px auto 0;
+      padding: 0 16px;
+      max-width: min(94vw, 1100px);
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+      word-break: keep-all;
+    }
+
     /* 미래지향적 네온 오로라 액센트 라인 (1열 타이틀 너비에 맞춘 확장) */
     .title-accent-glow {
       width: clamp(280px, 35vw, 560px);
@@ -647,6 +663,7 @@
         <span class="title-line">AI 멀티모달 에이전트 기반</span>
         <span class="title-line">음악동영상 생성 자동화 시스템 개발</span>
       </h1>
+      <p class="hero-sub-title-en">Development of an Automated Music Video Generation System Based on AI Multimodal Agents</p>
       <div class="title-accent-glow"></div>
     </header>
 
