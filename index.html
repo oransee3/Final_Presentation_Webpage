@@ -98,14 +98,14 @@
       text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
-    /* 네온 사이버 그라디언트 메인 타이틀 */
+    /* 네온 사이버 그라디언트 메인 타이틀 (2줄 강제 및 완벽한 중앙 정렬) */
     .hero-main-title {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-      font-size: clamp(1.45rem, 2.7vw, 2.5rem);
+      font-size: clamp(1.35rem, 2.4vw, 2.25rem);
       font-weight: 800;
-      line-height: 1.32;
+      line-height: 1.35;
       text-align: center;
-      margin: 0;
+      margin: 0 auto;
       padding: 0;
       letter-spacing: -0.035em;
       background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 30%, #38bdf8 65%, #c084fc 100%);
@@ -116,7 +116,10 @@
     }
 
     .title-line {
-      display: inline-block;
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin: 0 auto;
     }
 
     /* 미래지향적 네온 오로라 액센트 라인 */
